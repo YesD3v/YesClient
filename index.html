@@ -312,6 +312,197 @@
             color: #c5c6c9;
         }
 
+        .tutorial {
+            max-height: 0;
+            opacity: 0;
+            overflow: hidden;
+            transform: translateY(-8px);
+            margin-top: 0;
+            transition:
+                max-height 0.55s ease,
+                opacity 0.35s ease,
+                transform 0.45s ease,
+                margin-top 0.45s ease;
+        }
+
+        .tutorial.open {
+            max-height: 1400px;
+            opacity: 1;
+            transform: translateY(0);
+            margin-top: 18px;
+        }
+
+        .tutorial-card {
+            padding: 18px;
+            text-align: left;
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            background: rgba(17,18,20,0.9);
+            box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+        }
+
+        .tutorial-header {
+            margin-bottom: 17px;
+        }
+
+        .tutorial-title {
+            color: #f1f1f2;
+            font-size: 17px;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            margin-bottom: 5px;
+        }
+
+        .tutorial-subtitle {
+            color: #74767c;
+            font-size: 12px;
+            line-height: 1.5;
+        }
+
+        .step {
+            display: flex;
+            align-items: flex-start;
+            gap: 13px;
+            padding: 14px 0;
+            border-top: 1px solid rgba(255,255,255,0.055);
+        }
+
+        .step:first-of-type {
+            border-top: 0;
+            padding-top: 0;
+        }
+
+        .step:last-child {
+            padding-bottom: 0;
+        }
+
+        .step-number {
+            width: 27px;
+            height: 27px;
+            flex: 0 0 27px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid #303136;
+            border-radius: 8px;
+            background: #151619;
+            color: #d9d9db;
+            font-size: 11px;
+            font-weight: 700;
+        }
+
+        .step-content {
+            min-width: 0;
+            padding-top: 1px;
+        }
+
+        .step-title {
+            color: #dcdcdf;
+            font-size: 13px;
+            font-weight: 650;
+            line-height: 1.45;
+            margin-bottom: 4px;
+        }
+
+        .step-text {
+            color: #777980;
+            font-size: 12px;
+            line-height: 1.6;
+        }
+
+        .step-text strong {
+            color: #b9babf;
+            font-weight: 600;
+        }
+
+        .forge-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            margin-top: 9px;
+            padding: 8px 10px;
+            border: 1px solid #292a2e;
+            border-radius: 8px;
+            background: #151619;
+            color: #c9c9cc;
+            text-decoration: none;
+            font-size: 11px;
+            font-weight: 600;
+            transition:
+                background 0.2s ease,
+                border-color 0.2s ease,
+                color 0.2s ease;
+        }
+
+        .forge-link:hover {
+            background: #1b1c20;
+            border-color: #3a3b40;
+            color: #ffffff;
+        }
+
+        .command-box {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 10px;
+            padding: 9px;
+            border: 1px solid #292a2e;
+            border-radius: 9px;
+            background: #0c0d0f;
+        }
+
+        .command {
+            flex: 1;
+            min-width: 0;
+            padding: 0 3px;
+            color: #cfd0d3;
+            font-family: Consolas, "Courier New", monospace;
+            font-size: 11px;
+            white-space: nowrap;
+            overflow-x: auto;
+            scrollbar-width: none;
+        }
+
+        .command::-webkit-scrollbar {
+            display: none;
+        }
+
+        .copy-button {
+            flex: 0 0 auto;
+            border: 1px solid #303136;
+            border-radius: 7px;
+            padding: 7px 9px;
+            background: #17181b;
+            color: #aaaab0;
+            cursor: pointer;
+            font-size: 10px;
+            font-weight: 650;
+            transition:
+                background 0.2s ease,
+                color 0.2s ease,
+                border-color 0.2s ease;
+        }
+
+        .copy-button:hover {
+            background: #202125;
+            border-color: #3a3b40;
+            color: #f0f0f1;
+        }
+
+        .copy-button.copied {
+            color: #e4e4e5;
+            border-color: #45464b;
+        }
+
+        .note {
+            margin-top: 10px;
+            padding: 9px 10px;
+            border-left: 2px solid #333438;
+            color: #696b71;
+            font-size: 11px;
+            line-height: 1.55;
+        }
+
         .divider {
             width: 100%;
             height: 1px;
@@ -380,13 +571,22 @@
                 margin-bottom: 26px;
             }
 
-            .download-card {
+            .download-card,
+            .tutorial-card {
                 padding: 14px;
             }
 
             .download-meta {
                 flex-direction: column;
                 gap: 8px;
+            }
+
+            .command-box {
+                align-items: stretch;
+            }
+
+            .copy-button {
+                align-self: center;
             }
         }
     </style>
@@ -479,6 +679,110 @@
 
         </section>
 
+        <section class="tutorial" id="tutorial">
+            <div class="tutorial-card">
+
+                <div class="tutorial-header">
+                    <div class="tutorial-title">YesClient Installation</div>
+                    <div class="tutorial-subtitle">
+                        Follow these steps after downloading YesClient.
+                    </div>
+                </div>
+
+                <div class="step">
+                    <div class="step-number">1</div>
+                    <div class="step-content">
+                        <div class="step-title">Download Forge 1.8.9</div>
+                        <div class="step-text">
+                            Download the latest available <strong>Forge 1.8.9</strong> installer
+                            from the official Forge page.
+                        </div>
+
+                        <a
+                            class="forge-link"
+                            href="https://files.minecraftforge.net/net/minecraftforge/forge/index_1.8.9.html"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                        >
+                            Download Forge 1.8.9
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M7 17 17 7"></path>
+                                <path d="M7 7h10v10"></path>
+                            </svg>
+                        </a>
+                    </div>
+                </div>
+
+                <div class="step">
+                    <div class="step-number">2</div>
+                    <div class="step-content">
+                        <div class="step-title">Run the Forge installer</div>
+                        <div class="step-text">
+                            Open the Forge installer you downloaded and select
+                            <strong>Install client</strong>. Let the installer finish.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="step">
+                    <div class="step-number">3</div>
+                    <div class="step-content">
+                        <div class="step-title">Select the Forge profile</div>
+                        <div class="step-text">
+                            Open the <strong>Minecraft Launcher</strong> and select the
+                            newly installed <strong>Forge 1.8.9</strong> profile.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="step">
+                    <div class="step-number">4</div>
+                    <div class="step-content">
+                        <div class="step-title">Open the Minecraft mods folder</div>
+                        <div class="step-text">
+                            Before launching Minecraft, press <strong>Win + R</strong>,
+                            paste the command below, and press Enter.
+                        </div>
+
+                        <div class="command-box">
+                            <code class="command">%appdata%\.minecraft\mods</code>
+                            <button class="copy-button" id="copyModsPath" type="button">
+                                Copy
+                            </button>
+                        </div>
+
+                        <div class="note">
+                            If the <strong>mods</strong> folder does not exist, create a folder
+                            named <strong>mods</strong> inside <strong>.minecraft</strong>.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="step">
+                    <div class="step-number">5</div>
+                    <div class="step-content">
+                        <div class="step-title">Move YesClient into the mods folder</div>
+                        <div class="step-text">
+                            Take the downloaded <strong>YesClient-1.0.6.jar</strong> file
+                            and place it inside the <strong>mods</strong> folder.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="step">
+                    <div class="step-number">6</div>
+                    <div class="step-content">
+                        <div class="step-title">Launch Minecraft</div>
+                        <div class="step-text">
+                            Return to the Minecraft Launcher and launch the
+                            <strong>Forge 1.8.9</strong> profile.
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
         <div class="divider"></div>
 
         <footer class="footer">
@@ -498,6 +802,8 @@
         const tosAccept = document.getElementById("tosAccept");
         const downloadButton = document.getElementById("downloadButton");
         const downloadCount = document.getElementById("downloadCount");
+        const tutorial = document.getElementById("tutorial");
+        const copyModsPath = document.getElementById("copyModsPath");
 
         tosAccept.addEventListener("change", () => {
             if (tosAccept.checked) {
@@ -506,6 +812,55 @@
             } else {
                 downloadButton.classList.add("disabled");
                 downloadButton.setAttribute("aria-disabled", "true");
+            }
+        });
+
+        downloadButton.addEventListener("click", () => {
+            if (downloadButton.classList.contains("disabled")) {
+                return;
+            }
+
+            setTimeout(() => {
+                tutorial.classList.add("open");
+
+                setTimeout(() => {
+                    tutorial.scrollIntoView({
+                        behavior: "smooth",
+                        block: "start"
+                    });
+                }, 120);
+            }, 150);
+        });
+
+        copyModsPath.addEventListener("click", async () => {
+            const path = "%appdata%\\.minecraft\\mods";
+
+            try {
+                await navigator.clipboard.writeText(path);
+                copyModsPath.textContent = "Copied";
+                copyModsPath.classList.add("copied");
+
+                setTimeout(() => {
+                    copyModsPath.textContent = "Copy";
+                    copyModsPath.classList.remove("copied");
+                }, 1600);
+            } catch (error) {
+                const textarea = document.createElement("textarea");
+                textarea.value = path;
+                textarea.style.position = "fixed";
+                textarea.style.opacity = "0";
+                document.body.appendChild(textarea);
+                textarea.select();
+                document.execCommand("copy");
+                textarea.remove();
+
+                copyModsPath.textContent = "Copied";
+                copyModsPath.classList.add("copied");
+
+                setTimeout(() => {
+                    copyModsPath.textContent = "Copy";
+                    copyModsPath.classList.remove("copied");
+                }, 1600);
             }
         });
 
