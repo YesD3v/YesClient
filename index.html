@@ -446,8 +446,8 @@
             <a
                 id="downloadButton"
                 class="download-button disabled"
-                href="https://github.com/troaphdev/housingclient/releases/download/v1.0.6/HousingClient-1.0.6.jar"
-                download="HousingClient-1.0.6.jar"
+                href="https://github.com/YesD3v/YesClient/releases/download/Client/YesClient-1.0.6.jar"
+                download="YesClient-1.0.6.jar"
                 aria-disabled="true"
             >
                 <svg class="download-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
@@ -469,7 +469,7 @@
 
                 <a
                     class="release-link"
-                    href="https://github.com/troaphdev/housingclient/releases/tag/v1.0.6"
+                    href="https://github.com/YesD3v/YesClient/releases/tag/Client"
                     target="_blank"
                     rel="noopener noreferrer"
                 >
@@ -484,7 +484,7 @@
         <footer class="footer">
             YesClient &bull; v1.0.6 &bull;
             <a
-                href="https://github.com/troaphdev/housingclient"
+                href="https://github.com/YesD3v/YesClient"
                 target="_blank"
                 rel="noopener noreferrer"
             >
@@ -512,7 +512,7 @@
         async function loadDownloadCount() {
             try {
                 const response = await fetch(
-                    "https://api.github.com/repos/troaphdev/housingclient/releases/tags/v1.0.6",
+                    "https://api.github.com/repos/YesD3v/YesClient/releases/tags/Client",
                     {
                         headers: {
                             "Accept": "application/vnd.github+json"
@@ -528,11 +528,11 @@
                 const release = await response.json();
 
                 const asset = release.assets.find(
-                    item => item.name === "HousingClient-1.0.6.jar"
+                    item => item.name === "YesClient-1.0.6.jar"
                 );
 
                 if (!asset) {
-                    throw new Error("HousingClient-1.0.6.jar was not found");
+                    throw new Error("YesClient-1.0.6.jar was not found");
                 }
 
                 downloadCount.textContent =
