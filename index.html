@@ -601,7 +601,7 @@
 
         <div class="eyebrow">
             <span class="version-dot"></span>
-            Version 1.0.6
+            Version 1.1.0
         </div>
 
         <h1>YesClient</h1>
@@ -646,8 +646,8 @@
             <a
                 id="downloadButton"
                 class="download-button disabled"
-                href="https://github.com/YesD3v/YesClient/releases/download/Client/YesClient-1.0.6.jar"
-                download="YesClient-1.0.6.jar"
+                href="https://github.com/YesD3v/YesClient/releases/download/Client/YesClient-1.1.0.jar"
+                download="YesClient-1.1.0.jar"
                 aria-disabled="true"
             >
                 <svg class="download-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
@@ -763,7 +763,7 @@
                     <div class="step-content">
                         <div class="step-title">Move YesClient into the mods folder</div>
                         <div class="step-text">
-                            Take the downloaded <strong>YesClient-1.0.6.jar</strong> file
+                            Take the downloaded <strong>YesClient-1.1.0.jar</strong> file
                             and place it inside the <strong>mods</strong> folder.
                         </div>
                     </div>
@@ -786,7 +786,7 @@
         <div class="divider"></div>
 
         <footer class="footer">
-            YesClient &bull; v1.0.6 &bull;
+            YesClient &bull; v1.1.0 &bull;
             <a
                 href="https://github.com/YesD3v/YesClient"
                 target="_blank"
@@ -883,11 +883,11 @@
                 const release = await response.json();
 
                 const asset = release.assets.find(
-                    item => item.name === "YesClient-1.0.6.jar"
+                    item => item.name === "YesClient-1.1.0.jar"
                 );
 
                 if (!asset) {
-                    throw new Error("YesClient-1.0.6.jar was not found");
+                    throw new Error("YesClient-1.1.0.jar was not found");
                 }
 
                 downloadCount.textContent =
