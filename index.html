@@ -76,9 +76,7 @@ button { font: inherit; color: inherit; }
 .skip:focus { top: 12px; }
 
 /* nav */
-.nav-in { display: flex; align-items: center; justify-content: space-between; height: 68px; }
-.logo { display: block; line-height: 0; }
-.logo img { display: block; width: 28px; height: 28px; }
+.nav-in { display: flex; align-items: center; justify-content: flex-end; height: 68px; }
 .nav-in nav { display: flex; gap: 28px; font-size: 14px; }
 .nav-in nav a { color: var(--ash); text-decoration: none; }
 .nav-in nav a:hover { color: var(--paper); }
@@ -90,10 +88,10 @@ button { font: inherit; color: inherit; }
 }
 .id { display: flex; flex-direction: column; justify-content: space-between; gap: 56px; }
 
-.cube { display: block; width: clamp(120px, 16vw, 196px); height: auto; overflow: visible; }
+.cube { display: block; width: clamp(180px, 26vw, 320px); height: auto; overflow: visible; }
 .cube path {
-  fill: none; stroke: var(--paper); stroke-width: 1.6;
-  stroke-linecap: butt; stroke-linejoin: miter;
+  fill: none; stroke: var(--paper); stroke-width: 13;
+  stroke-linecap: round; stroke-linejoin: round;
   stroke-dasharray: 1; stroke-dashoffset: 1;
   animation: draw 1.1s cubic-bezier(.6, 0, .2, 1) .1s forwards;
 }
@@ -242,7 +240,7 @@ h2.title { font-size: clamp(20px, 2.4vw, 24px); font-weight: 700; font-stretch: 
   .cols { grid-template-columns: minmax(0, 1fr); row-gap: 40px; }
   .hero { row-gap: 48px; }
   .id { gap: 40px; }
-  .cube { width: clamp(110px, 30vw, 170px); }
+  .cube { width: clamp(170px, 42vw, 260px); }
   h1 { font-size: clamp(44px, 13vw, 84px); }
 }
 
@@ -267,7 +265,6 @@ h2.title { font-size: clamp(20px, 2.4vw, 24px); font-weight: 700; font-stretch: 
 
 <header>
   <div class="wrap nav-in">
-    <a class="logo" href="./" aria-label="YesClient home"><img src="assets/YesClient.png" alt="" width="28" height="28"></a>
     <nav aria-label="Primary">
       <a href="#install">Install</a>
       <a class="hide-sm" href="#notes">Release notes</a>
@@ -508,7 +505,7 @@ h2.title { font-size: clamp(20px, 2.4vw, 24px); font-weight: 700; font-stretch: 
   function markdown(src) {
     const out = document.createDocumentFragment();
     const lines = src
-      .replace(/<!--[\s\S]*?-->/g, "")
+      .replace(//g, "")
       .replace(/<br\s*\/?>/gi, "\n")
       .replace(/\r\n?/g, "\n")
       .split("\n");
