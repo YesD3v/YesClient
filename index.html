@@ -505,7 +505,7 @@ h2.title { font-size: clamp(20px, 2.4vw, 24px); font-weight: 700; font-stretch: 
   function markdown(src) {
     const out = document.createDocumentFragment();
     const lines = src
-      .replace(//g, "")
+      .replace(/<!--[\s\S]*?-->/g, "")
       .replace(/<br\s*\/?>/gi, "\n")
       .replace(/\r\n?/g, "\n")
       .split("\n");
