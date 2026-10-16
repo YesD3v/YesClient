@@ -1,0 +1,65 @@
+# Build output
+build/
+bin/
+out/
+
+# Gradle
+.gradle/
+gradle-2.14/
+gradle.zip
+
+# IDE
+.idea/
+*.iml
+.settings/
+.classpath
+.project
+.vscode/
+
+# Minecraft runtime
+run/
+
+# Compiled files
+*.class
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Logs and local artifacts
+*.log
+*.txt
+logs/
+
+# Libraries / Forge extract
+libs/
+forgeSrcExtract/
+
+# Local scratch / test junk
+TestGson.java
+test_unicode.json
+
+# Runtime credentials (never commit)
+**/alts.json
+**/*.cookie
+**/cookies.txt
+**/ns.dat
+**/session.json
+**/credentials/
+**/*.pem
+**/*.pkcs8
+
+# Backend / Supabase (never publish with client source)
+cloud/
+
+# Secrets / local env
+.env
+.env.*
+!.env.example
+presence/.env
+presence/local/
+supabase/.temp/
+
+# Keep the existing GitHub Pages page separate from mod-source updates
+/index.html
