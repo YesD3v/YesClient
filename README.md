@@ -1,4 +1,4 @@
-# YesClient 1.2.0
+# YesClient 1.2.1
 
 YesClient is a modular client-side mod for Minecraft Java Edition 1.8.9 and Forge. It combines visual tools, movement and quality-of-life options, HUD customization, inventory utilities, and server-specific tools in one in-game interface.
 
@@ -14,13 +14,18 @@ Some modules alter gameplay or send non-vanilla actions. Use them only where the
 
 1. Install and launch the Forge 1.8.9 profile once.
 2. Close Minecraft.
-3. Copy `YesClient-1.2.0.jar` into `.minecraft/mods`.
+3. Copy `YesClient-1.2.1.jar` into `.minecraft/mods`.
 4. Launch the Forge 1.8.9 profile.
 
 Keep one YesClient JAR in the `mods` folder so an older copy is not loaded alongside it. Press **Right Shift** in game to open the ClickGUI.
 
-## 1.2.0 highlights
+## 1.2.1 highlights
 
+- **Motion Blur:** blend recent rendered frames with an adjustable strength control.
+- **Chat customization:** highlight whole-word keywords, adjust chat background opacity and text shadow, and tune the keyword alert pitch from 0 to 2.
+- **Blink controls:** optionally pace queued packet release across ticks and automatically disable Blink at a configurable packet limit from 0 to 50.
+- **Detector refinements:** reduce Pattern Detection scan load and update repeated Griefer Detector alerts in place, including block destruction.
+- **Module organization:** source folders now follow the in-game module categories; Media Overlay is listed under Visuals.
 - **HUD editor:** move and resize HUD elements, adjust scaling, and customize supported elements individually.
 - **Media Overlay:** show the active Windows media session with artwork, title, artist, and playback progress; customize the card appearance in the module settings.
 - **FreeLook:** orbit the view around the player while movement remains character-relative.
@@ -56,11 +61,12 @@ Use JDK 8 with the included Gradle wrapper:
 gradlew.bat clean assemble
 ```
 
-The JAR is written to `build/libs/YesClient-1.2.0.jar`.
+The JAR is written to `build/libs/YesClient-1.2.1.jar`.
 
 ## Project documentation
 
 - [Architecture notes](docs/ARCHITECTURE.md)
 - [Developer documentation index](docs/README.md)
-- [YesClient 1.2.0 GitHub release notes](RELEASE_NOTES_1.2.0.md)
+- [YesClient 1.2.1 GitHub release notes](RELEASE_NOTES_1.2.1.md)
+- [Previous 1.2.0 release notes](RELEASE_NOTES_1.2.0.md)
 - [License](LICENSE)

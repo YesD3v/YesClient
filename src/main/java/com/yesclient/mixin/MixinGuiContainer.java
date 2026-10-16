@@ -1,6 +1,6 @@
 package com.yesclient.mixin;
 
-import com.yesclient.module.modules.miscellaneous.InvTweaksModule;
+import com.yesclient.module.modules.qol.InvTweaksModule;
 import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.inventory.Container;
 import net.minecraft.inventory.Slot;

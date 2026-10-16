@@ -1,4 +1,4 @@
-package com.yesclient.module.modules.combat;
+package com.yesclient.module.modules.misc;
 
 import com.yesclient.module.Category;
 import com.yesclient.module.Module;

@@ -4,7 +4,7 @@ import java.util.Iterator;
 
 import com.yesclient.YesClient;
 import com.yesclient.module.modules.movement.FlyModule;
-import com.yesclient.module.modules.combat.NoDebuffModule;
+import com.yesclient.module.modules.misc.NoDebuffModule;
 import com.yesclient.module.modules.visuals.HideEntitiesModule;
 import com.yesclient.utils.ItemFramePacketFilter;
 import net.minecraft.client.Minecraft;

@@ -1,7 +1,7 @@
 package com.yesclient.gui.crosshair;
 
 import com.yesclient.YesClient;
-import com.yesclient.module.modules.visuals.CrosshairModule;
+import com.yesclient.module.modules.qol.CrosshairModule;
 import com.yesclient.utils.RenderUtils;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.gui.ScaledResolution;

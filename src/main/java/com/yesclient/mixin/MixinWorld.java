@@ -106,7 +106,7 @@ public abstract class MixinWorld {
         if (YesClient.getInstance() == null || YesClient.getInstance().getModuleManager() == null) return;
         com.yesclient.module.modules.moderation.PatternDetectionModule pdm = YesClient.getInstance().getModuleManager().getModule(com.yesclient.module.modules.moderation.PatternDetectionModule.class);
         if (pdm != null && pdm.isEnabled()) {
-            pdm.onBlockChange(pos);
+            pdm.onBlockChange(pos, state);
         }
     }
 }

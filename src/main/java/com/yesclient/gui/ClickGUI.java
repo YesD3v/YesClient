@@ -443,7 +443,6 @@ public class ClickGUI extends GuiScreen {
         int y = startY;
         drawCategoryRow(y, null, "All modules", mouseX, mouseY);
         y += 24;
-        
         for (Category category : SIDEBAR_CATEGORIES) {
             if (y + 22 > panelY + panelH - 8) break;
             drawCategoryRow(y, category, category.getDisplayName(), mouseX, mouseY);

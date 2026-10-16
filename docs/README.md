@@ -13,4 +13,4 @@ Developer notes for people working on the source tree.
 
 - **Main entry:** `com.yesclient.YesClient`
 - **Modules:** `com.yesclient.module.modules.*`
-- **Version:** 1.2.0; see `YesClient.VERSION`, `mcmod.info`, and `build.gradle`
+- **Version:** 1.2.1; see `YesClient.VERSION`, `mcmod.info`, and `build.gradle`

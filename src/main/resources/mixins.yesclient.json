@@ -20,6 +20,7 @@
     "MixinGuiIngame",
     "MixinGuiIngameMenu",
     "MixinGuiMultiplayer",
+    "MixinGuiNewChat",
     "MixinGuiMainMenu",
     "MixinGuiPlayerTabOverlay",
     "MixinGuiScreen",

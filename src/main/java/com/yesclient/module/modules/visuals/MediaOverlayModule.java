@@ -81,7 +81,7 @@ public class MediaOverlayModule extends Module {
     }, "YesClient-MediaOverlay-Shutdown");
 
     public MediaOverlayModule() {
-        super("Media Overlay", "Shows the current song and playback progress", Category.QOL, ModuleMode.BOTH);
+        super("Media Overlay", "Shows the current song and playback progress", Category.VISUALS, ModuleMode.BOTH);
         addSetting(overlayWidth);
         addSetting(overlayHeight);
         addSetting(backgroundColor);

@@ -1,4 +1,4 @@
-package com.yesclient.module.modules.visuals;
+package com.yesclient.module.modules.qol;
 
 import com.yesclient.gui.crosshair.GuiCustomCrosshair;
 import com.yesclient.module.Category;

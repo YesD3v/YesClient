@@ -60,6 +60,7 @@ public class CustomGuiNewChat extends GuiNewChat {
 
     @Override
     public void printChatMessageWithOptionalDeletion(IChatComponent chatComponent, int chatLineId) {
+        com.yesclient.module.modules.client.ChatModule.playKeywordBellIfMatched(chatComponent.getUnformattedText());
         setChatLineCustom(chatComponent, chatLineId, mc.ingameGUI.getUpdateCounter(), false);
     }
 

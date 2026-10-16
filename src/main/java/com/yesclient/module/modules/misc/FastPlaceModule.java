@@ -1,4 +1,4 @@
-package com.yesclient.module.modules.building;
+package com.yesclient.module.modules.misc;
 import java.lang.reflect.Method;
 import java.lang.reflect.Field;
 

@@ -1,6 +1,5 @@
 package com.yesclient.module.modules.moderation;
 import java.util.Comparator;
-import java.util.HashSet;
 import java.util.List;
 import java.awt.Color;
 import java.util.Iterator;
@@ -17,10 +16,15 @@ import net.minecraft.util.BlockPos;
 
 import java.util.ArrayList;
 import java.util.Set;
-import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class PatternDetectionModule extends Module {
+
+    private static final double MIN_BACKGROUND_AIR_RATIO = 0.65D;
+    private static final int MAX_CHANGED_BLOCKS_PER_TICK = 2;
+    private static final int MAX_FOUND_VALIDATIONS_PER_TICK = 12;
+    private static final int MAX_FOUND_PATTERNS = 128;
+    private static final int MAX_QUEUED_BLOCKS = 4096;
 
     private final BooleanSetting chatNotifications = new BooleanSetting("Chat Notifications", "Send chat alerts when found", true);
     private final BooleanSetting esp = new BooleanSetting("ESP", "Highlight detected patterns", true);
@@ -29,8 +33,9 @@ public class PatternDetectionModule extends Module {
     private final NumberSetting lineWidth = new NumberSetting("Line Width", "Width of ESP lines", 2.0, 0.5, 5.0, 0.5);
 
     private final List<ShapeDef> shapes = new ArrayList<>();
-    private final List<Match> foundPatterns = new CopyOnWriteArrayList<>();
+    private final List<Match> foundPatterns = new ArrayList<>();
     private final List<Reported> reportedOrigins = new ArrayList<>();
+    private int foundValidationIndex;
 
     public PatternDetectionModule() {
         super("Pattern Detection", "Detects inappropriate block builds", Category.MODERATION, ModuleMode.BOTH);
@@ -103,44 +108,18 @@ public class PatternDetectionModule extends Module {
          
          
          
-        String[] ppV1 = { ".....", "..X..", "..X..", "..X..", ".XXX." };  
-        String[] ppV2 = { ".....", "..X..", "..X..", "..X..", ".X.X." };  
-        String[] ppV3 = { ".....", "..X..", "..X..", ".XXX." };          
-        String[] ppV4 = { ".....", "..X..", "..X..", ".X.X." };          
         String[] ppV5 = { ".....", "..X..", "..X..", "..X..", "..X..", ".XXX." };  
-        String[] ppV6 = { ".....", "..X..", "..X..", "..X..", "..X..", ".X.X." };  
         String[] ppV7 = { ".....", "..X..", "..X..", "..X..", "..X..", "..X..", ".XXX." };  
-        String[] ppV8 = { ".....", "..X..", "..X..", "..X..", "..X..", "..X..", ".X.X." };  
-        
-        addVerticalShape("PP", ppV1);
-        addVerticalShape("PP", ppV2);
-        addVerticalShape("PP", ppV3);
-        addVerticalShape("PP", ppV4);
         addVerticalShape("PP", ppV5);
-        addVerticalShape("PP", ppV6);
         addVerticalShape("PP", ppV7);
-        addVerticalShape("PP", ppV8);
 
          
          
          
-        String[] ppH1 = { ".....", "..X..", "..X..", "..X..", ".XXX.", "....." };
-        String[] ppH2 = { ".....", "..X..", "..X..", "..X..", ".X.X.", "....." };
-        String[] ppH3 = { ".....", "..X..", "..X..", ".XXX.", "....." };
-        String[] ppH4 = { ".....", "..X..", "..X..", ".X.X.", "....." };
         String[] ppH5 = { ".....", "..X..", "..X..", "..X..", "..X..", ".XXX.", "....." };
-        String[] ppH6 = { ".....", "..X..", "..X..", "..X..", "..X..", ".X.X.", "....." };
         String[] ppH7 = { ".....", "..X..", "..X..", "..X..", "..X..", "..X..", ".XXX.", "....." };
-        String[] ppH8 = { ".....", "..X..", "..X..", "..X..", "..X..", "..X..", ".X.X.", "....." };
-        
-        addHorizontalShape("PP", ppH1);
-        addHorizontalShape("PP", ppH2);
-        addHorizontalShape("PP", ppH3);
-        addHorizontalShape("PP", ppH4);
         addHorizontalShape("PP", ppH5);
-        addHorizontalShape("PP", ppH6);
         addHorizontalShape("PP", ppH7);
-        addHorizontalShape("PP", ppH8);
     }
 
     private void addVerticalShape(String name, String[] pattern) {
@@ -223,6 +202,7 @@ public class PatternDetectionModule extends Module {
         foundPatterns.clear();
         reportedOrigins.clear();
         blocksToScan.clear();
+        foundValidationIndex = 0;
     }
 
     @Override
@@ -230,12 +210,15 @@ public class PatternDetectionModule extends Module {
         foundPatterns.clear();
         reportedOrigins.clear();
         blocksToScan.clear();
+        foundValidationIndex = 0;
     }
 
     private final Set<BlockPos> blocksToScan = ConcurrentHashMap.newKeySet();
 
-    public void onBlockChange(BlockPos pos) {
-        if (mc.thePlayer != null && pos.distanceSq(mc.thePlayer.getPosition()) <= range.getIntValue() * range.getIntValue()) {
+    public void onBlockChange(BlockPos pos, net.minecraft.block.state.IBlockState state) {
+        if (mc.thePlayer == null || state == null || !isSolidBlock(state.getBlock())) return;
+        if (pos.distanceSq(mc.thePlayer.getPosition()) <= range.getIntValue() * range.getIntValue()
+                && (blocksToScan.contains(pos) || blocksToScan.size() < MAX_QUEUED_BLOCKS)) {
             blocksToScan.add(pos);
         }
     }
@@ -249,40 +232,22 @@ public class PatternDetectionModule extends Module {
          
          
          
-        for (Match match : foundPatterns) {
-            boolean stillMatches = matchesStandalone(match.origin, match.shape)
-                    || matchesNegative(match.origin, match.shape)
-                    || matchesUniform(match.origin, match.shape);
-            if (!stillMatches) {
-                foundPatterns.remove(match);
-            }
-        }
+        validateFoundPatterns();
 
         if (blocksToScan.isEmpty()) return;
 
-        int scannedCount = 0;
         Iterator<BlockPos> it = blocksToScan.iterator();
-        Set<BlockPos> originsToCheck = new HashSet<>();
+        int scannedCount = 0;
 
-        while (it.hasNext() && scannedCount < 100) {
+        while (it.hasNext() && scannedCount < MAX_CHANGED_BLOCKS_PER_TICK) {
             BlockPos changedPos = it.next();
             it.remove();
 
             for (ShapeDef shape : shapes) {
                 if (shape.anchorOffset == null) continue;
-                originsToCheck.clear();
-
-                 
-                 
                 for (BlockPos offset : shape.solid) {
-                    originsToCheck.add(new BlockPos(changedPos.getX() - offset.getX(), changedPos.getY() - offset.getY(), changedPos.getZ() - offset.getZ()));
-                }
-                for (BlockPos offset : shape.air) {
-                    originsToCheck.add(new BlockPos(changedPos.getX() - offset.getX(), changedPos.getY() - offset.getY(), changedPos.getZ() - offset.getZ()));
-                }
-
-                for (BlockPos origin : originsToCheck) {
-                    if (matchesStandalone(origin, shape) || matchesUniform(origin, shape) || matchesNegative(origin, shape)) {
+                    BlockPos origin = changedPos.add(-offset.getX(), -offset.getY(), -offset.getZ());
+                    if (matchesPattern(origin, shape)) {
                         handleMatch(origin, shape);
                     }
                 }
@@ -291,59 +256,59 @@ public class PatternDetectionModule extends Module {
         }
     }
 
-    private boolean matchesStandalone(BlockPos origin, ShapeDef shape) {
-        for (BlockPos offset : shape.solid) {
-            if (!isSolid(origin.add(offset))) return false;
+    private void validateFoundPatterns() {
+        int checks = Math.min(MAX_FOUND_VALIDATIONS_PER_TICK, foundPatterns.size());
+        for (int i = 0; i < checks && !foundPatterns.isEmpty(); i++) {
+            if (foundValidationIndex >= foundPatterns.size()) foundValidationIndex = 0;
+            Match match = foundPatterns.get(foundValidationIndex);
+            if (!matchesPattern(match.origin, match.shape)) {
+                foundPatterns.remove(foundValidationIndex);
+            } else {
+                foundValidationIndex++;
+            }
         }
-        for (BlockPos offset : shape.air) {
-            if (!isAir(origin.add(offset))) return false;
-        }
-        return true;
     }
 
-    private boolean matchesNegative(BlockPos origin, ShapeDef shape) {
-        for (BlockPos offset : shape.solid) {
-            if (!isAir(origin.add(offset))) return false;
-        }
-        for (BlockPos offset : shape.air) {
-            if (!isSolid(origin.add(offset))) return false;
-        }
-        return true;
-    }
-
-    private boolean matchesUniform(BlockPos origin, ShapeDef shape) {
+    private boolean matchesPattern(BlockPos origin, ShapeDef shape) {
         Block shapeBlock = null;
+        boolean uniform = true;
         for (BlockPos offset : shape.solid) {
-            BlockPos p = origin.add(offset);
-            if (isAir(p)) return false;
-            Block block = mc.theWorld.getBlockState(p).getBlock();
+            BlockPos pos = origin.add(offset);
+            if (pos.getY() < 0 || pos.getY() > 255 || !mc.theWorld.isBlockLoaded(pos)) return false;
+            Block block = mc.theWorld.getBlockState(pos).getBlock();
+            if (!isSolidBlock(block)) return false;
             if (shapeBlock == null) shapeBlock = block;
-            else if (block != shapeBlock) return false;
+            else if (shapeBlock != block) uniform = false;
         }
+
+        int backgroundAir = 0;
+        boolean backgroundMatchesMaterial = false;
         for (BlockPos offset : shape.air) {
-            BlockPos p = origin.add(offset);
-            Block block = mc.theWorld.getBlockState(p).getBlock();
-            if (block == shapeBlock) return false;
+            BlockPos pos = origin.add(offset);
+            if (pos.getY() < 0 || pos.getY() > 255 || !mc.theWorld.isBlockLoaded(pos)) return false;
+            Block block = mc.theWorld.getBlockState(pos).getBlock();
+            if (isAirBlock(block)) backgroundAir++;
+            else if (block == shapeBlock) backgroundMatchesMaterial = true;
         }
-        return true;
+        boolean standalone = backgroundAir == shape.air.size();
+        return standalone || (uniform && !backgroundMatchesMaterial
+                && !shape.air.isEmpty()
+                && backgroundAir / (double) shape.air.size() >= MIN_BACKGROUND_AIR_RATIO);
     }
 
-    private boolean isSolid(BlockPos pos) {
-        if (pos.getY() < 0 || pos.getY() > 255) return false;
-        Block block = mc.theWorld.getBlockState(pos).getBlock();
+    private boolean isSolidBlock(Block block) {
         return block != net.minecraft.init.Blocks.air
                 && !block.getMaterial().isLiquid()
                 && !block.getMaterial().isReplaceable();
     }
 
-    private boolean isAir(BlockPos pos) {
-        if (pos.getY() < 0 || pos.getY() > 255) return true;
-        Block block = mc.theWorld.getBlockState(pos).getBlock();
+    private boolean isAirBlock(Block block) {
         return block == net.minecraft.init.Blocks.air
                 || block.getMaterial().isReplaceable();
     }
 
     private void handleMatch(BlockPos pos, ShapeDef shape) {
+        if (foundPatterns.size() >= MAX_FOUND_PATTERNS) return;
         for (Match match : foundPatterns) {
             if (match.origin.distanceSq(pos) < 9) {
                 return;  

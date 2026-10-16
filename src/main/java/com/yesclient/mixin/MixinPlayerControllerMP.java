@@ -1,6 +1,6 @@
 package com.yesclient.mixin;
 
-import com.yesclient.module.modules.combat.ReachModule;
+import com.yesclient.module.modules.misc.ReachModule;
 import com.yesclient.YesClient;
 import com.yesclient.module.modules.exploit.ProjectileAimbotModule;
 import net.minecraft.client.multiplayer.PlayerControllerMP;

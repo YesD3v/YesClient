@@ -1,7 +1,7 @@
 package com.yesclient.mixin;
 
 import com.yesclient.YesClient;
-import com.yesclient.module.modules.visuals.FancyTextModule;
+import com.yesclient.module.modules.client.FancyTextModule;
 import net.minecraft.client.entity.EntityPlayerSP;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;

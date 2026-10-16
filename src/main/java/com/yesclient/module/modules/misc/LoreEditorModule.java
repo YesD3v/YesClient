@@ -1,4 +1,4 @@
-package com.yesclient.module.modules.items;
+package com.yesclient.module.modules.misc;
 import java.util.List;
 
 import com.yesclient.module.Category;

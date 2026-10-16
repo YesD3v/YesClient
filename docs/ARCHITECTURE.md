@@ -16,7 +16,15 @@ com.yesclient/
 ├── module/                     # Module system
 │   ├── Module.java
 │   ├── ModuleManager.java
-│   └── modules/                # building, client, combat, exploit, …
+│   └── modules/                # folders follow the in-game module categories
+│       ├── client/
+│       ├── exploit/
+│       ├── misc/
+│       ├── moderation/
+│       ├── movement/
+│       ├── qol/
+│       ├── render/
+│       └── visuals/
 ├── storage/                    # Item storage
 └── utils/                      # Chat, render, fonts, etc.
 ```

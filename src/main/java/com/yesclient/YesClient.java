@@ -46,7 +46,7 @@ public class YesClient {
 
     public static final String MODID = "yesclient";
     public static final String NAME = "YesClient";
-    public static final String VERSION = "1.2.0";
+    public static final String VERSION = "1.2.1";
     public static final Logger LOGGER = LogManager.getLogger(MODID);
 
     @Mod.Instance(MODID)

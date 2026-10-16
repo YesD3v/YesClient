@@ -11,6 +11,7 @@ import com.yesclient.module.modules.client.ClickGUIModule;
 import com.yesclient.module.modules.client.HudDesignerModule;
 import com.yesclient.module.modules.client.HUDModule;
 
+import com.yesclient.module.modules.render.DirectionModule;
 import com.yesclient.module.modules.visuals.*;
 import com.yesclient.module.modules.exploit.BlinkModule;
 import net.minecraft.client.gui.GuiScreen;

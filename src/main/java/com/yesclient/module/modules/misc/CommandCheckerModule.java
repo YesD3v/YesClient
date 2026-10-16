@@ -1,4 +1,4 @@
-package com.yesclient.module.modules.miscellaneous;
+package com.yesclient.module.modules.misc;
 import java.util.Locale;
 import java.util.HashSet;
 import java.util.Map;

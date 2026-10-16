@@ -1,4 +1,4 @@
-package com.yesclient.module.modules.visuals;
+package com.yesclient.module.modules.render;
 
 import com.yesclient.YesClient;
 import com.yesclient.module.Category;

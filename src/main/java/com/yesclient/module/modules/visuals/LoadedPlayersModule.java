@@ -7,6 +7,7 @@ import com.yesclient.module.HudScale;
 import com.yesclient.module.HudTextStyle;
 import com.yesclient.module.Module;
 import com.yesclient.module.ModuleMode;
+import com.yesclient.module.modules.client.FancyTextModule;
 import com.yesclient.module.modules.client.HudDesignerModule;
 import com.yesclient.module.settings.BooleanSetting;
 import com.yesclient.module.settings.NumberSetting;

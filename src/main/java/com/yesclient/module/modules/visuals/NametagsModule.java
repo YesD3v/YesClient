@@ -4,6 +4,7 @@ import com.yesclient.YesClient;
 import com.yesclient.module.Category;
 import com.yesclient.module.Module;
 import com.yesclient.module.ModuleMode;
+import com.yesclient.module.modules.client.FancyTextModule;
 import com.yesclient.module.modules.client.FriendsModule;
 import com.yesclient.module.settings.BooleanSetting;
 import com.yesclient.utils.MinecraftFormatting;

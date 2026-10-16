@@ -2,7 +2,7 @@ package com.yesclient.mixin;
 
 import com.yesclient.YesClient;
 import com.yesclient.module.Module;
-import com.yesclient.module.modules.visuals.FancyTextModule;
+import com.yesclient.module.modules.client.FancyTextModule;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.gui.inventory.GuiContainerCreative;
 import org.lwjgl.input.Keyboard;

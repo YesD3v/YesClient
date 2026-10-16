@@ -1,4 +1,4 @@
-package com.yesclient.module.modules.miscellaneous;
+package com.yesclient.module.modules.qol;
 
 import com.yesclient.YesClient;
 import com.yesclient.module.Category;

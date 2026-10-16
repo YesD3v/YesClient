@@ -1,4 +1,4 @@
-package com.yesclient.module.modules.visuals;
+package com.yesclient.module.modules.client;
 import java.util.HashMap;
 import java.util.Map;
 

@@ -45,7 +45,7 @@ public class ChatCommandHandler {
     public static String getCleanCommand(String message) {
         if (message == null)
             return null;
-        return com.yesclient.module.modules.visuals.FancyTextModule.revertToNormal(message);
+        return com.yesclient.module.modules.client.FancyTextModule.revertToNormal(message);
     }
 
     public static boolean handleChatMessage(String rawMessage) {

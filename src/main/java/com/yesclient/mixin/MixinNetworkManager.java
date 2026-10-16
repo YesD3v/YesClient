@@ -6,7 +6,7 @@ import com.yesclient.YesClient;
 import com.yesclient.module.modules.exploit.BlinkModule;
 import com.yesclient.module.modules.exploit.CustomAuthorModule;
 import com.yesclient.module.modules.exploit.SilentNukerModule;
-import com.yesclient.module.modules.miscellaneous.CommandCheckerModule;
+import com.yesclient.module.modules.misc.CommandCheckerModule;
 import com.yesclient.module.modules.exploit.PacketMultiplierModule;
 import com.yesclient.module.modules.exploit.ProjectileAimbotModule;
 import com.yesclient.module.modules.visuals.FreeCamModule;

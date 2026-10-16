@@ -4,18 +4,14 @@ import java.util.List;
 import java.nio.charset.StandardCharsets;
 
 import com.yesclient.YesClient;
-import com.yesclient.module.modules.building.*;
 import com.yesclient.module.modules.client.*;
-import com.yesclient.module.modules.combat.*;
-import com.yesclient.module.modules.freebuild.*;
 import com.yesclient.module.modules.movement.*;
 import com.yesclient.module.modules.visuals.*;
 import com.yesclient.module.modules.render.*;
-import com.yesclient.module.modules.items.*;
 import com.yesclient.module.modules.exploit.*;
 
 import com.yesclient.module.modules.moderation.*;
-import com.yesclient.module.modules.miscellaneous.*;
+import com.yesclient.module.modules.misc.*;
 
 import com.yesclient.module.modules.qol.*;
 import com.yesclient.module.settings.Setting;
@@ -57,8 +53,9 @@ public class ModuleManager {
         modules.add(new SpeedModule());
 
          
-        modules.add(new com.yesclient.module.modules.visuals.CrosshairModule());
+        modules.add(new com.yesclient.module.modules.qol.CrosshairModule());
         modules.add(new FullbrightModule());
+        modules.add(new MotionBlurModule());
         modules.add(new FreeCamModule());
         modules.add(new FreeLookModule());
         modules.add(new TrueSightModule());

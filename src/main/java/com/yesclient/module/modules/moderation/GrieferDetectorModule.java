@@ -9,7 +9,6 @@ import com.yesclient.module.Category;
 import com.yesclient.module.Module;
 import com.yesclient.module.settings.BooleanSetting;
 import com.yesclient.module.settings.NumberSetting;
-import com.yesclient.utils.ChatUtils;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
@@ -74,6 +73,8 @@ public class GrieferDetectorModule extends Module {
      
      
     private final Map<UUID, Set<String>> alertedItems = new HashMap<>();
+    private final Map<UUID, Map<String, ItemAlertState>> itemAlertStates = new HashMap<>();
+    private int nextAlertChatLineId = Integer.MIN_VALUE;
 
     private int ticks = 0;
 
@@ -110,6 +111,8 @@ public class GrieferDetectorModule extends Module {
         super.onEnable();
         breakCounts.clear();
         alertedItems.clear();
+        itemAlertStates.clear();
+        nextAlertChatLineId = Integer.MIN_VALUE;
         ticks = 0;
     }
 
@@ -238,7 +241,7 @@ public class GrieferDetectorModule extends Module {
                     currentlyHolding.add(flagName);
                      
                     if (!alerted.contains(flagName)) {
-                        alert(player.getName(), flagName, isSevere);
+                        alertItem(player, flagName, isSevere);
                         alerted.add(flagName);
                     }
                 }
@@ -250,10 +253,35 @@ public class GrieferDetectorModule extends Module {
         }
     }
 
-    private void alert(String name, String type, boolean severe) {
-        String color = severe ? "\u00A7c" : "\u00A7f";  
-        ChatUtils.sendClientMessage(
-                "\u00A7c[Griefer Detector] \u00A7f" + name + " is flagging [" + color + type + "\u00A7f]");
+    private void alertItem(EntityPlayer player, String type, boolean severe) {
+        updateAlert(player.getUniqueID(), player.getName(), type, severe, 1);
+    }
+
+    private void updateAlert(UUID uuid, String name, String type, boolean severe, int amount) {
+        Map<String, ItemAlertState> states = itemAlertStates.computeIfAbsent(uuid, key -> new HashMap<String, ItemAlertState>());
+        ItemAlertState state = states.get(type);
+        if (state == null) {
+            state = new ItemAlertState(nextAlertChatLineId++);
+            states.put(type, state);
+        }
+        state.count += amount;
+        state.severe = severe;
+
+        String color = state.severe ? "\u00A7c" : "\u00A7f";
+        net.minecraft.util.ChatComponentText message = new net.minecraft.util.ChatComponentText(
+                "\u00A7c[Griefer Detector] \u00A7f" + name + " is flagging ["
+                        + color + type + "\u00A7f] \u00A77(x" + state.count + ")");
+        mc.ingameGUI.getChatGUI().printChatMessageWithOptionalDeletion(message, state.chatLineId);
+    }
+
+    private static class ItemAlertState {
+        private final int chatLineId;
+        private int count;
+        private boolean severe;
+
+        private ItemAlertState(int chatLineId) {
+            this.chatLineId = chatLineId;
+        }
     }
 
     public void onPacketReceive(net.minecraft.network.Packet<?> packet) {
@@ -338,7 +366,7 @@ public class GrieferDetectorModule extends Module {
             if (entry.getValue() > limit) {
                 EntityPlayer player = mc.theWorld.getPlayerEntityByUUID(entry.getKey());
                 String name = (player != null) ? player.getName() : "Unknown";
-                alert(name, "Block Destruction", false);
+                updateAlert(entry.getKey(), name, "Block Destruction", false, entry.getValue());
             }
         }
     }
