@@ -14,9 +14,11 @@ import com.yesclient.module.settings.ItemSetting;
 import com.yesclient.module.settings.NumberSetting;
 import com.yesclient.utils.RenderUtils;
 import net.minecraft.block.Block;
+import net.minecraft.client.renderer.entity.RenderManager;
 import net.minecraft.item.ItemBlock;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.BlockPos;
+import net.minecraft.util.Vec3;
 
 public class SearchModule extends Module {
 
@@ -193,10 +195,16 @@ public class SearchModule extends Module {
             else if (outline.isEnabled()) RenderUtils.drawBlockESP(pos, outlineColor, scaledLineWidth);
 
             if (tracers.isEnabled()) {
-                double x = pos.getX() + 0.5 - mc.getRenderManager().viewerPosX;
-                double y = pos.getY() + 0.5 - mc.getRenderManager().viewerPosY;
-                double z = pos.getZ() + 0.5 - mc.getRenderManager().viewerPosZ;
-                RenderUtils.drawTracer(x, y, z, outlineColor, scaledLineWidth);
+                RenderManager renderManager = mc.getRenderManager();
+                Vec3 start = RenderUtils.getCrosshairPos(partialTicks);
+                RenderUtils.drawLine(
+                        start.xCoord - renderManager.viewerPosX,
+                        start.yCoord - renderManager.viewerPosY,
+                        start.zCoord - renderManager.viewerPosZ,
+                        pos.getX() + 0.5D - renderManager.viewerPosX,
+                        pos.getY() + 0.5D - renderManager.viewerPosY,
+                        pos.getZ() + 0.5D - renderManager.viewerPosZ,
+                        outlineColor.getRGB(), scaledLineWidth);
             }
             rendered++;
         }

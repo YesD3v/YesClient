@@ -10,6 +10,9 @@ import com.yesclient.module.modules.misc.CommandCheckerModule;
 import com.yesclient.module.modules.exploit.PacketMultiplierModule;
 import com.yesclient.module.modules.exploit.ProjectileAimbotModule;
 import com.yesclient.module.modules.visuals.FreeCamModule;
+import com.yesclient.module.modules.moderation.GrieferDetectorModule;
+import com.yesclient.module.modules.visuals.PacketMonitorModule;
+import net.minecraft.network.EnumPacketDirection;
 import net.minecraft.network.NetworkManager;
 import net.minecraft.network.Packet;
 import net.minecraft.network.play.client.C0BPacketEntityAction;
@@ -33,6 +36,15 @@ public class MixinNetworkManager {
 
     @Inject(method = "func_179290_a", at = @At("HEAD"), cancellable = true)
     private void onSendPacket(Packet<?> packet, CallbackInfo ci) {
+
+        try {
+            GrieferDetectorModule detector = (GrieferDetectorModule) YesClient.getInstance().getModuleManager()
+                    .getModule(GrieferDetectorModule.class);
+            if (detector != null && detector.isEnabled() && packet instanceof C07PacketPlayerDigging) {
+                detector.onLocalDigPacket((C07PacketPlayerDigging) packet);
+            }
+        } catch (Throwable ignored) {
+        }
 
         try {
             ProjectileAimbotModule.handleOutboundUse(packet);
@@ -65,6 +77,7 @@ public class MixinNetworkManager {
             BlinkModule blink = YesClient.getInstance().getModuleManager().getModule(BlinkModule.class);
             if (blink != null && BlinkModule.shouldCancelPacket(packet)) {
                 ci.cancel();
+                return;
             }
         } catch (Throwable t) {
              
@@ -74,6 +87,7 @@ public class MixinNetworkManager {
         try {
             if (PacketMultiplierModule.shouldMultiplyPacket(packet)) {
                 ci.cancel();
+                return;
             }
         } catch (Throwable t) {
              
@@ -81,7 +95,9 @@ public class MixinNetworkManager {
 
         try {
             FreeCamModule freeCam = YesClient.getInstance().getModuleManager().getModule(FreeCamModule.class);
-            if (freeCam == null || !freeCam.isEnabled()) return;
+            if (freeCam == null || !freeCam.isEnabled()) {
+                return;
+            }
 
             if (packet instanceof C07PacketPlayerDigging) {
                 if (!freeCam.canInteractWithBlock(((C07PacketPlayerDigging) packet).getPosition())) {
@@ -120,6 +136,18 @@ public class MixinNetworkManager {
             } else if (packet instanceof C0BPacketEntityAction && !freeCam.canUseItemFromCamera()) {
                 ci.cancel();
                 return;
+            }
+        } catch (Throwable ignored) {
+        }
+    }
+
+    /** Packet Monitor counts at the end of the client connection's pipeline, where every outgoing packet passes. */
+    @Inject(method = "channelActive(Lio/netty/channel/ChannelHandlerContext;)V", at = @At("TAIL"), remap = false)
+    private void onChannelActive(io.netty.channel.ChannelHandlerContext context, CallbackInfo ci) {
+        try {
+            NetworkManager manager = (NetworkManager) (Object) this;
+            if (manager.getDirection() == EnumPacketDirection.CLIENTBOUND) {
+                PacketMonitorModule.attachCounter(context.pipeline());
             }
         } catch (Throwable ignored) {
         }

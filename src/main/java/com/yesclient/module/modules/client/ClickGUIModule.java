@@ -7,6 +7,12 @@ import com.yesclient.module.Module;
 import com.yesclient.module.ModuleMode;
 import com.yesclient.module.settings.BooleanSetting;
 import com.yesclient.module.settings.ModeSetting;
+import java.io.IOException;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.texture.ITextureObject;
+import net.minecraft.client.renderer.texture.TextureManager;
+import net.minecraft.client.resources.IResourceManager;
+import net.minecraft.util.ResourceLocation;
 import org.lwjgl.input.Keyboard;
 
 public class ClickGUIModule extends Module {
@@ -14,11 +20,21 @@ public class ClickGUIModule extends Module {
 
     private final BooleanSetting sounds = new BooleanSetting("Click Sounds",
             "Play polished clicks and toggle sounds across the interface", true);
-    private final BooleanSetting snapToGrid = new BooleanSetting("Snap to Grid", "Snap panels to grid", false);
+    private final BooleanSetting snapToGrid = new BooleanSetting("Snap to Grid",
+            "Snap HUD elements' centers to the screen's quarter lines in the HUD editor", false);
     private final BooleanSetting notifications = new BooleanSetting("Notifications", "Show toggle notifications", true);
     private final BooleanSetting blatantMode = new BooleanSetting("Blatant Mode", "Enable risky modules", false);
     private final BooleanSetting watermark = new BooleanSetting("Watermark", "Show YesClient watermark", true);
-    private final ModeSetting fontMode = new ModeSetting("Font", "The font to use", "Fancy", "Regular", "Fancy");
+    private final ModeSetting fontMode = new ModeSetting("Font", "The font to use", "Fancy", "Regular", "Fancy") {
+        @Override
+        public void setValue(String value) {
+            boolean changed = value != null && !value.equals(getValue());
+            super.setValue(value);
+            if (changed) {
+                reloadFonts();
+            }
+        }
+    };
 
     public ClickGUIModule() {
         super("ClickGUI", "Displays this menu", Category.CLIENT, ModuleMode.BOTH, Keyboard.KEY_RSHIFT);
@@ -56,6 +72,44 @@ public class ClickGUIModule extends Module {
     public boolean isWatermarkEnabled() { return watermark.isEnabled(); }
     public boolean showWatermark() { return watermark.isEnabled(); }
     public boolean isFancyFont() { return fontMode.is("Fancy"); }
+
+    /**
+     * The Font setting swaps the font textures while resources load (MixinSimpleReloadableResourceManager), so after a
+     * change the loaded font textures and glyph widths are reloaded to apply it right away.
+     */
+    private static void reloadFonts() {
+        Minecraft minecraft = Minecraft.getMinecraft();
+        if (minecraft == null || minecraft.fontRendererObj == null || minecraft.getTextureManager() == null) {
+            return; // still starting up; the font is loaded with the current setting anyway
+        }
+        if (!minecraft.isCallingFromMinecraftThread()) {
+            minecraft.addScheduledTask(ClickGUIModule::reloadFonts);
+            return;
+        }
+        IResourceManager resources = minecraft.getResourceManager();
+        TextureManager textures = minecraft.getTextureManager();
+        reloadTexture(textures, resources, new ResourceLocation("textures/font/ascii.png"));
+        reloadTexture(textures, resources, new ResourceLocation("textures/font/ascii_sga.png"));
+        for (int page = 0; page < 256; page++) {
+            reloadTexture(textures, resources,
+                    new ResourceLocation(String.format("textures/font/unicode_page_%02x.png", page)));
+        }
+        minecraft.fontRendererObj.onResourceManagerReload(resources);
+        if (minecraft.standardGalacticFontRenderer != null) {
+            minecraft.standardGalacticFontRenderer.onResourceManagerReload(resources);
+        }
+    }
+
+    private static void reloadTexture(TextureManager textures, IResourceManager resources, ResourceLocation location) {
+        ITextureObject texture = textures.getTexture(location);
+        if (texture == null) {
+            return; // never loaded, it will load with the new font when first used
+        }
+        try {
+            texture.loadTexture(resources);
+        } catch (IOException ignored) {
+        }
+    }
     public boolean isTooltipsEnabled() { return true; }
     public boolean isBlatantModeEnabled() { return blatantMode.isEnabled(); }
     public HudScale getWatermarkScale() { return watermarkScale; }

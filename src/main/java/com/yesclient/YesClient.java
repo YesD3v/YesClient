@@ -12,8 +12,7 @@ import com.yesclient.module.ModuleManager;
 import com.yesclient.module.modules.client.ClickGUIModule;
 import com.yesclient.storage.CreativeTabStorage;
 import com.yesclient.storage.ItemStealerStorage;
-import com.yesclient.storage.SavedHotbarStorage;
-import com.yesclient.storage.SavedHotbarTab;
+import com.yesclient.storage.ItemVaultStorage;
 
 import com.yesclient.utils.HousingDetector;
 import com.yesclient.utils.KeybindManager;
@@ -46,7 +45,7 @@ public class YesClient {
 
     public static final String MODID = "yesclient";
     public static final String NAME = "YesClient";
-    public static final String VERSION = "1.2.6";
+    public static final String VERSION = "1.2.7";
     public static final Logger LOGGER = LogManager.getLogger(MODID);
 
     @Mod.Instance(MODID)
@@ -61,7 +60,7 @@ public class YesClient {
     private EventManager eventManager;
     private CreativeTabStorage creativeTabStorage;
     private ItemStealerStorage itemStealerStorage;
-    private SavedHotbarStorage savedHotbarStorage;
+    private ItemVaultStorage itemVaultStorage;
     private ItemLogManager itemLogManager;
 
     private HousingDetector housingDetector;
@@ -113,12 +112,12 @@ public class YesClient {
         creativeTabStorage = new CreativeTabStorage(dataDir);
         itemStealerStorage = new ItemStealerStorage(dataDir);
         itemStealerStorage.load();
-        savedHotbarStorage = new SavedHotbarStorage(dataDir);
-        savedHotbarStorage.load();
+        itemVaultStorage = new ItemVaultStorage(dataDir);
+        itemVaultStorage.load();
         itemLogManager = new ItemLogManager();
         new ItemLogTab();
-        new com.yesclient.storage.ItemStealerTab();  
-        new SavedHotbarTab();
+        new com.yesclient.storage.ItemStealerTab();
+        new com.yesclient.storage.ItemVaultTab();
         housingDetector = new HousingDetector();
 
          
@@ -216,7 +215,7 @@ public class YesClient {
                      
                     langMap.put("itemGroup.yesclient_nbt_logger", "NBT Logger");
                     langMap.put("itemGroup.itemstealer", "Item Stealer");
-                    langMap.put("itemGroup.savedhotbars", "Saved Hotbars");
+                    langMap.put("itemGroup.itemvault", "Item Vault");
 
                     LOGGER.info("Injected creative tab translations successfully!");
                 }
@@ -228,11 +227,6 @@ public class YesClient {
 
     @SubscribeEvent
     public void onKeyInput(InputEvent.KeyInputEvent event) {
-        if (Keyboard.getEventKeyState() && savedHotbarStorage != null
-                && savedHotbarStorage.handleCreativeKeyPress(Keyboard.getEventKey())) {
-            return;
-        }
-
         if (mc.theWorld == null || mc.thePlayer == null)
             return;
 
@@ -361,8 +355,8 @@ public class YesClient {
         return itemStealerStorage;
     }
 
-    public SavedHotbarStorage getSavedHotbarStorage() {
-        return savedHotbarStorage;
+    public ItemVaultStorage getItemVaultStorage() {
+        return itemVaultStorage;
     }
 
     public HousingDetector getHousingDetector() {
@@ -412,7 +406,7 @@ public class YesClient {
         if (configManager != null) configManager.saveConfig();
         if (profileManager != null) profileManager.saveProfiles();
         if (creativeTabStorage != null) creativeTabStorage.save();
-        if (savedHotbarStorage != null) savedHotbarStorage.save();
+        if (itemVaultStorage != null) itemVaultStorage.save();
         if (keybindManager != null) keybindManager.saveKeybinds();
         if (moduleManager != null) moduleManager.saveModuleStates();
     }

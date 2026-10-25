@@ -1,5 +1,6 @@
 package com.yesclient.module.modules.visuals;
 
+import com.yesclient.YesClient;
 import com.yesclient.module.Category;
 import com.yesclient.module.Module;
 import com.yesclient.module.ModuleMode;
@@ -34,6 +35,11 @@ public class FreeLookModule extends Module {
         if (mc.thePlayer == null || mc.theWorld == null) {
             setEnabled(false);
             return;
+        }
+
+        FreeCamModule freeCam = YesClient.getInstance().getModuleManager().getModule(FreeCamModule.class);
+        if (freeCam != null && freeCam.isEnabled()) {
+            freeCam.setEnabled(false);
         }
 
          

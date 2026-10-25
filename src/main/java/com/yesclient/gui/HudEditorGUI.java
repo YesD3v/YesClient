@@ -28,6 +28,11 @@ public class HudEditorGUI extends GuiScreen {
 
     private static final int RESIZE_HANDLE_SIZE = 12;
     private static final int RESIZE_HANDLE_GAP = 2;
+    /** Snap to Grid: an element's centre locks onto a quarter line within this distance... */
+    private static final int SNAP_IN_DISTANCE = 6;
+    /** ...and only lets go once the mouse drags it further away than this. */
+    private static final int SNAP_OUT_DISTANCE = 14;
+    private static final int SNAP_LINE_COLOR = 0xCC55AAFF;
 
     private final HudDesignerModule hudDesigner;
     private final ModuleManager moduleManager;
@@ -40,6 +45,8 @@ public class HudEditorGUI extends GuiScreen {
     private int resizeStartX, resizeStartY;
     private int resizeDirectionX = 1, resizeDirectionY = 1;
     private float resizeStartScale = 1.0F;
+    /** Quarter lines the dragged element is locked onto (screen pixels), -1 when not snapped. */
+    private int snappedLineX = -1, snappedLineY = -1;
 
     public HudEditorGUI(HudDesignerModule hudDesigner) {
         this.hudDesigner = hudDesigner;
@@ -99,6 +106,11 @@ public class HudEditorGUI extends GuiScreen {
                 hudDesigner.getMediaOverlayY(screenHeight), 310, 82, "mediaOverlay");
         addModuleElementIfEnabled(HideEntitiesModule.class, "Entities Hidden", hudDesigner.getHiddenEntitiesX(),
                 hudDesigner.getHiddenEntitiesY(), 100, 15, "hiddenEntities");
+        PacketMonitorModule packetMonitor = moduleManager.getModule(PacketMonitorModule.class);
+        if (packetMonitor != null && packetMonitor.isHudVisible()) {
+            addModuleElementIfEnabled(PacketMonitorModule.class, "Packet Monitor", hudDesigner.getPacketMonitorX(),
+                    hudDesigner.getPacketMonitorY(), 100, 15, "packetMonitor");
+        }
         addModuleElementIfEnabled(com.yesclient.module.modules.exploit.AutoBegModule.class, "Auto Beg",
                 hudDesigner.getAutoBegX(),
                 hudDesigner.getAutoBegY(), 100, 15, "autobeg");
@@ -194,16 +206,28 @@ public class HudEditorGUI extends GuiScreen {
                 draggedElement.x = Math.max(0, Math.min(width, draggedElement.x));
                 draggedElement.y = Math.max(0, Math.min(height, draggedElement.y));
 
-                 
+                if (isSnapToGridEnabled()) {
+                    applySnap(draggedElement);
+                } else {
+                    snappedLineX = snappedLineY = -1;
+                }
+
                 updateModulePosition(draggedElement);
             } else {
-                 
+
                 draggedElement = null;
+                snappedLineX = snappedLineY = -1;
             }
         }
 
-         
+
         drawRect(0, 0, width, height, new Color(0, 0, 0, 100).getRGB());
+
+        // Guide lines only show while an element is locked onto them.
+        if (draggedElement != null) {
+            if (snappedLineX >= 0) drawVerticalLine(snappedLineX, -1, height, SNAP_LINE_COLOR);
+            if (snappedLineY >= 0) drawHorizontalLine(0, width, snappedLineY, SNAP_LINE_COLOR);
+        }
 
          
          
@@ -261,6 +285,49 @@ public class HudEditorGUI extends GuiScreen {
         }
 
         super.drawScreen(mouseX, mouseY, partialTicks);
+    }
+
+    private boolean isSnapToGridEnabled() {
+        ClickGUIModule clickGui = moduleManager.getModule(ClickGUIModule.class);
+        return clickGui != null && clickGui.isSnapToGrid();
+    }
+
+    /**
+     * Snap to Grid: locks the exact centre of the element onto the screen's 1/4, 1/2 and 3/4 lines (horizontal and
+     * vertical, independently). Once locked it stays there until the mouse drags it further away.
+     */
+    private void applySnap(HudEditorElement element) {
+        int centerX = getRenderX(element) + element.width / 2;
+        int centerY = element.y + element.height / 2;
+        snappedLineX = snapAxis(centerX, width, snappedLineX);
+        snappedLineY = snapAxis(centerY, height, snappedLineY);
+        if (snappedLineX >= 0) {
+            setRenderX(element, snappedLineX - element.width / 2);
+        }
+        if (snappedLineY >= 0) {
+            element.y = snappedLineY - element.height / 2;
+        }
+    }
+
+    private static int snapAxis(int center, int size, int lockedLine) {
+        if (lockedLine >= 0 && Math.abs(center - lockedLine) <= SNAP_OUT_DISTANCE) {
+            return lockedLine;
+        }
+        for (int quarter = 1; quarter <= 3; quarter++) {
+            int line = size * quarter / 4;
+            if (Math.abs(center - line) <= SNAP_IN_DISTANCE) {
+                return line;
+            }
+        }
+        return -1;
+    }
+
+    /** Moves the element so it is drawn starting at {@code renderX} (the module list anchors right on the right half). */
+    private void setRenderX(HudEditorElement element, int renderX) {
+        element.x = renderX;
+        if (getRenderX(element) != renderX) {
+            element.x = renderX + element.width;
+        }
     }
 
     private int getRenderX(HudEditorElement element) {
@@ -445,6 +512,7 @@ public class HudEditorGUI extends GuiScreen {
     protected void mouseReleased(int mouseX, int mouseY, int state) {
         draggedElement = null;
         resizingElement = null;
+        snappedLineX = snappedLineY = -1;
         super.mouseReleased(mouseX, mouseY, state);
     }
 
@@ -507,6 +575,9 @@ public class HudEditorGUI extends GuiScreen {
                 break;
             case "mediaOverlay":
                 hudDesigner.setMediaOverlayPosition(element.x, element.y);
+                break;
+            case "packetMonitor":
+                hudDesigner.setPacketMonitorPosition(element.x, element.y);
                 break;
         }
     }

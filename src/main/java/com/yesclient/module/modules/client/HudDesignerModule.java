@@ -69,6 +69,8 @@ public class HudDesignerModule extends Module {
     private final NumberSetting autoBegY = new NumberSetting("AutoBeg Y", "Y position", 428, 0, 2000);
     private final NumberSetting mediaOverlayX = new NumberSetting("Media Overlay X", "X position", 8, 0, 3000);
     private final NumberSetting mediaOverlayY = new NumberSetting("Media Overlay Y", "Y position", -100, -2000, 2000);
+    private final NumberSetting packetMonitorX = new NumberSetting("Packet Monitor X", "X position", 5, 0, 3000);
+    private final NumberSetting packetMonitorY = new NumberSetting("Packet Monitor Y", "Y position", 448, 0, 2000);
 
     public HudDesignerModule() {
         super("HUD Designer", "Click to open HUD editor (drag elements)", Category.CLIENT, ModuleMode.BOTH);
@@ -108,6 +110,8 @@ public class HudDesignerModule extends Module {
         addSetting(autoBegY);
         addSetting(mediaOverlayX);
         addSetting(mediaOverlayY);
+        addSetting(packetMonitorX);
+        addSetting(packetMonitorY);
     }
 
      
@@ -300,6 +304,19 @@ public class HudDesignerModule extends Module {
     public void setMediaOverlayPosition(int x, int y) {
         mediaOverlayX.setValue((double) x);
         mediaOverlayY.setValue((double) y);
+    }
+
+    public int getPacketMonitorX() {
+        return packetMonitorX.getIntValue();
+    }
+
+    public int getPacketMonitorY() {
+        return packetMonitorY.getIntValue();
+    }
+
+    public void setPacketMonitorPosition(int x, int y) {
+        packetMonitorX.setValue((double) x);
+        packetMonitorY.setValue((double) y);
     }
 
      

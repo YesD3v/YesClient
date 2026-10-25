@@ -7,6 +7,7 @@ import com.yesclient.module.HudTextStyle;
 import com.yesclient.module.Module;
 import com.yesclient.module.ModuleMode;
 import com.yesclient.module.modules.client.HudDesignerModule;
+import com.yesclient.module.settings.BooleanSetting;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.potion.Potion;
@@ -19,12 +20,25 @@ public class ActiveEffectsModule extends Module {
 
     private final HudScale hudScale = new HudScale(this);
     private final HudTextStyle textStyle = new HudTextStyle(this, false);
+    private final BooleanSetting hideInventoryEffects = new BooleanSetting("Hide Inventory Effects",
+            "Remove the vanilla potion effect cards next to the opened inventory", false);
 
     private static final ResourceLocation inventoryBackground = new ResourceLocation(
             "textures/gui/container/inventory.png");
 
     public ActiveEffectsModule() {
         super("ActiveEffects", "Display active potion effects on HUD", Category.VISUALS, ModuleMode.BOTH);
+        addSetting(hideInventoryEffects);
+    }
+
+    /** True while the module is on with "Hide Inventory Effects" enabled. */
+    public static boolean shouldHideInventoryEffects() {
+        YesClient client = YesClient.getInstance();
+        if (client == null || client.getModuleManager() == null) {
+            return false;
+        }
+        ActiveEffectsModule module = client.getModuleManager().getModule(ActiveEffectsModule.class);
+        return module != null && module.isEnabled() && module.hideInventoryEffects.isEnabled();
     }
 
     @Override

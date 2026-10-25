@@ -28,18 +28,26 @@ public final class HudTextStyle {
 
     public HudTextStyle(Module owner, boolean showLabelByDefault, double lowDefault, double highDefault,
             double maxValue, int lowColorDefault, int highColorDefault) {
-        this(owner, showLabelByDefault, true, lowDefault, highDefault, maxValue, lowColorDefault, highColorDefault);
+        this(owner, showLabelByDefault, true, lowDefault, highDefault, maxValue, lowColorDefault, highColorDefault,
+                false);
+    }
+
+    public HudTextStyle(Module owner, boolean showLabelByDefault, double lowDefault, double highDefault,
+            double maxValue, int lowColorDefault, int highColorDefault, boolean colorByValueDefault) {
+        this(owner, showLabelByDefault, true, lowDefault, highDefault, maxValue, lowColorDefault, highColorDefault,
+                colorByValueDefault);
     }
 
     private HudTextStyle(Module owner, boolean showLabelByDefault, boolean supportsValueColor,
             double lowDefault, double highDefault, int lowColorDefault, int highColorDefault) {
         this(owner, showLabelByDefault, supportsValueColor, lowDefault, highDefault,
                 Math.max(Math.max(Math.abs(lowDefault), Math.abs(highDefault)) * 4.0D, 100.0D),
-                lowColorDefault, highColorDefault);
+                lowColorDefault, highColorDefault, false);
     }
 
     private HudTextStyle(Module owner, boolean showLabelByDefault, boolean supportsValueColor,
-            double lowDefault, double highDefault, double maxValue, int lowColorDefault, int highColorDefault) {
+            double lowDefault, double highDefault, double maxValue, int lowColorDefault, int highColorDefault,
+            boolean colorByValueDefault) {
         this.owner = owner;
         showLabel = new BooleanSetting("Show Label", "Show the HUD item's name before its value", showLabelByDefault);
         brackets = new ModeSetting("Brackets", "Wrap the HUD text in brackets", "None",
@@ -50,7 +58,8 @@ public final class HudTextStyle {
         owner.addSetting(textColor);
 
         if (supportsValueColor) {
-            valueColoring = new BooleanSetting("Color by Value", "Blend between colors based on the current value", false);
+            valueColoring = new BooleanSetting("Color by Value", "Blend between colors based on the current value",
+                    colorByValueDefault);
             lowValue = new NumberSetting("Low Color At", "Value that uses the low color", lowDefault, 0.0D, maxValue, 1.0D);
             highValue = new NumberSetting("High Color At", "Value that uses the high color", highDefault, 1.0D, maxValue, 1.0D);
             lowColor = new ColorSetting("Low Value Color", "Color at the low end of the range",

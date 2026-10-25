@@ -73,6 +73,7 @@ public class ModuleManager {
         modules.add(new CPSModule());
         modules.add(new FPSModule());
         modules.add(new PingModule());
+        modules.add(new PacketMonitorModule());
         modules.add(new CoordsModule());
         modules.add(new DirectionModule());
         modules.add(new BiomeModule());

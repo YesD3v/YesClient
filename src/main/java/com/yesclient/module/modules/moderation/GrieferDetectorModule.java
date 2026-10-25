@@ -17,7 +17,9 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.network.play.server.S22PacketMultiBlockChange;
 import net.minecraft.network.play.server.S23PacketBlockChange;
 import net.minecraft.util.BlockPos;
+import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.util.Vec3;
+import net.minecraft.network.play.client.C07PacketPlayerDigging;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 
@@ -68,6 +70,8 @@ public class GrieferDetectorModule extends Module {
             "Detects when anyone holds a barrier block", true);
 
     private final Map<UUID, Integer> breakCounts = new HashMap<>();
+    private final Map<BlockPos, Long> localDigPositions = new HashMap<>();
+    private static final long LOCAL_DIG_SUPPRESSION_MS = 2500L;
 
      
      
@@ -110,6 +114,7 @@ public class GrieferDetectorModule extends Module {
     public void onEnable() {
         super.onEnable();
         breakCounts.clear();
+        localDigPositions.clear();
         alertedItems.clear();
         itemAlertStates.clear();
         nextAlertChatLineId = Integer.MIN_VALUE;
@@ -122,6 +127,8 @@ public class GrieferDetectorModule extends Module {
             return;
 
         ticks++;
+        long now = System.currentTimeMillis();
+        localDigPositions.entrySet().removeIf(entry -> entry.getValue() <= now);
 
          
         if (ticks % 5 == 0) {
@@ -279,7 +286,7 @@ public class GrieferDetectorModule extends Module {
     }
 
     public void onPacketReceive(net.minecraft.network.Packet<?> packet) {
-        if (!blockDestruction.isEnabled())
+        if (!blockDestruction.isEnabled() || mc.theWorld == null)
             return;
 
         if (packet instanceof S23PacketBlockChange) {
@@ -289,8 +296,9 @@ public class GrieferDetectorModule extends Module {
                 Field f = S23PacketBlockChange.class.getDeclaredField("field_148883_d");
                 f.setAccessible(true);
                 IBlockState state = (IBlockState) f.get(p);
-                if (state.getBlock() == net.minecraft.init.Blocks.air) {
-                    processBlockBreak(p.getBlockPosition());
+                BlockPos pos = p.getBlockPosition();
+                if (state.getBlock() == net.minecraft.init.Blocks.air && wasSolidBeforeUpdate(pos)) {
+                    processBlockBreak(pos);
                 }
             } catch (Exception e) {
                  
@@ -298,8 +306,9 @@ public class GrieferDetectorModule extends Module {
                     Field f = S23PacketBlockChange.class.getDeclaredField("blockState");
                     f.setAccessible(true);
                     IBlockState state = (IBlockState) f.get(p);
-                    if (state.getBlock() == net.minecraft.init.Blocks.air) {
-                        processBlockBreak(p.getBlockPosition());
+                    BlockPos pos = p.getBlockPosition();
+                    if (state.getBlock() == net.minecraft.init.Blocks.air && wasSolidBeforeUpdate(pos)) {
+                        processBlockBreak(pos);
                     }
                 } catch (Exception e2) {
                      
@@ -308,14 +317,33 @@ public class GrieferDetectorModule extends Module {
         } else if (packet instanceof S22PacketMultiBlockChange) {
             S22PacketMultiBlockChange p = (S22PacketMultiBlockChange) packet;
             for (S22PacketMultiBlockChange.BlockUpdateData data : p.getChangedBlocks()) {
-                if (data.getBlockState().getBlock() == net.minecraft.init.Blocks.air) {
+                if (data.getBlockState().getBlock() == net.minecraft.init.Blocks.air
+                        && wasSolidBeforeUpdate(data.getPos())) {
                     processBlockBreak(data.getPos());
                 }
             }
         }
     }
 
+    public void onLocalDigPacket(C07PacketPlayerDigging packet) {
+        if (!blockDestruction.isEnabled() || packet == null)
+            return;
+
+        C07PacketPlayerDigging.Action action = packet.getStatus();
+        if (action == C07PacketPlayerDigging.Action.START_DESTROY_BLOCK
+                || action == C07PacketPlayerDigging.Action.STOP_DESTROY_BLOCK) {
+            localDigPositions.put(packet.getPosition(), System.currentTimeMillis() + LOCAL_DIG_SUPPRESSION_MS);
+        }
+    }
+
+    private boolean wasSolidBeforeUpdate(BlockPos pos) {
+        return pos != null && mc.theWorld.getBlockState(pos).getBlock() != net.minecraft.init.Blocks.air;
+    }
+
     private void processBlockBreak(BlockPos pos) {
+        if (pos == null || wasLocallyDug(pos))
+            return;
+
         double range = 6.0;
         EntityPlayer suspect = null;
         double closestDistSq = range * range;
@@ -342,16 +370,24 @@ public class GrieferDetectorModule extends Module {
         }
     }
 
+    private boolean wasLocallyDug(BlockPos pos) {
+        Long expiresAt = localDigPositions.get(pos);
+        if (expiresAt == null)
+            return false;
+        if (expiresAt <= System.currentTimeMillis()) {
+            localDigPositions.remove(pos);
+            return false;
+        }
+        return true;
+    }
+
     private boolean isLookingAt(EntityPlayer player, BlockPos target) {
         Vec3 eyePos = player.getPositionEyes(1.0f);
         Vec3 lookVec = player.getLook(1.0f);
-
-        Vec3 targetVec = new Vec3(target.getX() + 0.5, target.getY() + 0.5, target.getZ() + 0.5);
-        Vec3 diff = targetVec.subtract(eyePos);
-        diff = diff.normalize();
-
-        double dot = lookVec.dotProduct(diff);
-        return dot > 0.95;
+        Vec3 end = eyePos.addVector(lookVec.xCoord * 6.0, lookVec.yCoord * 6.0, lookVec.zCoord * 6.0);
+        MovingObjectPosition hit = mc.theWorld.rayTraceBlocks(eyePos, end, false, true, false);
+        return hit != null && hit.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK
+                && target.equals(hit.getBlockPos());
     }
 
     private void checkThresholds() {

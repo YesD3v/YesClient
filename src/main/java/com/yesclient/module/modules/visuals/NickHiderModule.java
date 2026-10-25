@@ -334,12 +334,7 @@ public class NickHiderModule extends Module {
             return;
         }
 
-        Thread skinLoader = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                loadPlayerSkin(skinKey);
-            }
-        }, "YesClient-NickHider-Skin");
+        Thread skinLoader = new Thread(() -> loadPlayerSkin(skinKey), "YesClient-NickHider-Skin");
         skinLoader.setDaemon(true);
         skinLoader.start();
     }
@@ -387,51 +382,38 @@ public class NickHiderModule extends Module {
                     : ("slim".equalsIgnoreCase(skinTexture.getMetadata("model")) ? "slim" : "default");
             final ResourceLocation fallbackSkin = DefaultPlayerSkin.getDefaultSkin(uuid);
 
-            minecraft.addScheduledTask(new Runnable() {
-                @Override
-                public void run() {
-                    if (!skinKey.equals(requestedSkinKey) || !isActive()) {
-                        return;
-                    }
+            minecraft.addScheduledTask(() -> {
+                if (!skinKey.equals(requestedSkinKey) || !isActive()) {
+                    return;
+                }
 
-                    replacementProfile = filledProfile;
-                    replacementSkin = fallbackSkin;
-                    replacementSkinModel = model;
+                replacementProfile = filledProfile;
+                replacementSkin = fallbackSkin;
+                replacementSkinModel = model;
 
-                    if (skinTexture != null) {
-                        ResourceLocation location = Minecraft.getMinecraft().getSkinManager().loadSkin(
-                                skinTexture,
-                                Type.SKIN,
-                                new SkinManager.SkinAvailableCallback() {
-                                    @Override
-                                    public void skinAvailable(Type type, ResourceLocation loadedLocation,
-                                            MinecraftProfileTexture profileTexture) {
-                                        if (skinKey.equals(requestedSkinKey) && isActive()) {
-                                            replacementSkin = loadedLocation;
-                                            replacementSkinModel = model;
-                                        }
-                                    }
-                                });
+                if (skinTexture != null) {
+                    ResourceLocation location = Minecraft.getMinecraft().getSkinManager().loadSkin(
+                            skinTexture,
+                            Type.SKIN,
+                            (type, loadedLocation, profileTexture) -> {
+                                if (skinKey.equals(requestedSkinKey) && isActive()) {
+                                    replacementSkin = loadedLocation;
+                                    replacementSkinModel = model;
+                                }
+                            });
 
-                         
-                         
-                        replacementSkin = location;
-                    }
+                    replacementSkin = location;
+                }
 
-                    if (capeTexture != null) {
-                        Minecraft.getMinecraft().getSkinManager().loadSkin(
-                                capeTexture,
-                                Type.CAPE,
-                                new SkinManager.SkinAvailableCallback() {
-                                    @Override
-                                    public void skinAvailable(Type type, ResourceLocation loadedLocation,
-                                            MinecraftProfileTexture profileTexture) {
-                                        if (skinKey.equals(requestedSkinKey) && isActive()) {
-                                            replacementCape = loadedLocation;
-                                        }
-                                    }
-                                });
-                    }
+                if (capeTexture != null) {
+                    Minecraft.getMinecraft().getSkinManager().loadSkin(
+                            capeTexture,
+                            Type.CAPE,
+                            (type, loadedLocation, profileTexture) -> {
+                                if (skinKey.equals(requestedSkinKey) && isActive()) {
+                                    replacementCape = loadedLocation;
+                                }
+                            });
                 }
             });
         } catch (Exception ignored) {

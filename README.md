@@ -1,22 +1,23 @@
-# YesClient 1.2.6
+# YesClient 1.2.7
 
 YesClient is a client-side mod for Minecraft Java Edition 1.8.9 and Forge. It combines visual tools, movement options, moderation utilities, inventory helpers, and HUD customization in an in-game interface.
 
 Some modules alter gameplay or send non-vanilla actions. Use them only where the server rules allow them.
 
-## What's new in 1.2.6
+## What's new in 1.2.7
 
-- **PP Builder:** automatically builds the configured vertical or horizontal template on the block you're targeting. Choose your held block or the stained-clay preset, preview pending and placed blocks, and have the module stop when the build finishes.
-- **Nick Detector:** checks the UUID version supplied with tab-list player profiles. Version 1 is marked as nicked, version 4 is treated as a real player, and version 3 NPCs are ignored. Confirmed nicks receive a client chat alert; no API key or external lookup is used.
-- **YesArmor:** adds banner and wool color cycles to the head slot, with monochrome and rainbow palettes, and restores replaced armor when disabled. Survival-mode auto-toggle behavior is more predictable.
-- **Startup and ClickGUI:** adds the YesClient logo draw-in and draw-out animation, and prepares ClickGUI fonts and textures during startup.
-- **FreeCam and FreeLook:** improves interaction handling and camera targeting; FreeCam outlines nearby entities without the removed block overlays.
-- **ESP and tracers:** adds item-frame and storage tracer targets and improves tracer/render origins and ESP integration.
-- **Media Overlay:** improves playback timing and progress display, artwork handling, and long title/artist scrolling.
-- **Flight and moderation:** separates Creative Flight from the survival Fly exploit, and improves repeated Griefer Detector alerts.
-- **Organization and rendering:** keeps module source directories aligned with ClickGUI categories and includes related rendering fixes.
+- **Item Vault:** a creative tab that replaces saved hotbars. Click with an item on the cursor to store a copy, take stored items as often as you like, and Ctrl+Click to remove one. It has its own search bar.
+- **Packet Monitor:** a HUD readout of packets sent to the server per tick, with an optional disconnect when outgoing packets in one tick reach a limit. Its position can be set in the HUD Designer.
+- **Pattern Detection:** also flags two-tone PP builds (such as PP Builder's white clay preset with a red tip) and small PPs standing on the ground.
+- **Griefer Detector:** ignores blocks you break yourself and checks what a player is looking at with a block raytrace.
+- **Blink:** replays every held packet in order when disabled, and released packets show up in Packet Monitor.
+- **FreeCam and FreeLook:** turning one on turns the other off.
+- **Active Effects:** can hide the vanilla effect cards in the inventory and keep it centered.
+- **ClickGUI:** changing the font applies immediately; Snap to Grid snaps HUD elements to the screen's quarter lines.
+- **Search:** tracers start at the crosshair.
+- **Media Overlay:** album art detection works for any media app, not just Brave.
 
-See [RELEASE_NOTES_1.2.6.md](RELEASE_NOTES_1.2.6.md) for the full release notes.
+Full release notes are on the [Releases page](https://github.com/YesD3v/YesClient/releases).
 
 ## Requirements
 
@@ -28,16 +29,16 @@ See [RELEASE_NOTES_1.2.6.md](RELEASE_NOTES_1.2.6.md) for the full release notes.
 
 1. Install and launch the Forge 1.8.9 profile once.
 2. Close Minecraft.
-3. Copy `YesClient-1.2.6.jar` into `.minecraft/mods`.
+3. Copy `YesClient-1.2.7.jar` into `.minecraft/mods`.
 4. Launch the Forge 1.8.9 profile.
 
 Keep one YesClient JAR in the `mods` folder so an older copy is not loaded alongside it. Press **Right Shift** in game to open the ClickGUI.
 
 ## Module areas
 
-- **Visuals:** ESP, storage ESP, tracers, nametags, FreeCam, FreeLook, Media Overlay, YesArmor, and HUD readouts.
+- **Visuals:** ESP, storage ESP, tracers, nametags, FreeCam, FreeLook, Media Overlay, YesArmor, Packet Monitor, and HUD readouts.
 - **Movement and quality of life:** Creative Flight, sprint, SafeWalk, Zoom, GUI Move, inventory helpers, and Anti Void Lag.
-- **Exploit and inventory:** Fly, PP Builder, FastPlace, FastBreak, saved hotbars, and NBT utilities.
+- **Exploit and inventory:** Fly, PP Builder, FastPlace, FastBreak, Item Vault, and NBT utilities.
 - **Moderation:** Nick Detector, Griefer Detector, Pattern Detection, and other server/player checks.
 - **Client:** ClickGUI, HUD Designer, module list, chat, friends, Fancy Text, and optional Discord Rich Presence.
 
@@ -55,13 +56,8 @@ Use JDK 8 with the included Gradle wrapper:
 gradlew.bat clean assemble
 ```
 
-The JAR is written to `build/libs/YesClient-1.2.6.jar`.
+The JAR is written to `build/libs/YesClient-1.2.7.jar`.
 
-## Project documentation
+## License
 
-- [Architecture notes](docs/ARCHITECTURE.md)
-- [Developer documentation index](docs/README.md)
-- [YesClient 1.2.6 release notes](RELEASE_NOTES_1.2.6.md)
-- [Previous 1.2.1 release notes](RELEASE_NOTES_1.2.1.md)
-- [Previous 1.2.0 release notes](RELEASE_NOTES_1.2.0.md)
-- [License](LICENSE)
+See [LICENSE](LICENSE).

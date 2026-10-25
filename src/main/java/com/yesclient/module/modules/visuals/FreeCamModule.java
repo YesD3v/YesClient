@@ -4,6 +4,7 @@ import java.awt.Color;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.yesclient.YesClient;
 import com.yesclient.module.Category;
 import com.yesclient.module.Module;
 import com.yesclient.module.ModuleMode;
@@ -76,6 +77,11 @@ public class FreeCamModule extends Module {
         if (mc.thePlayer == null || mc.theWorld == null) {
             setEnabled(false);
             return;
+        }
+
+        FreeLookModule freeLook = YesClient.getInstance().getModuleManager().getModule(FreeLookModule.class);
+        if (freeLook != null && freeLook.isEnabled()) {
+            freeLook.setEnabled(false);
         }
 
          

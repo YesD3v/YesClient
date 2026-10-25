@@ -19,10 +19,55 @@ try {
         return $task.Result
     }
 
-    function Test-BraveLogoThumbnail([byte[]]$imageBytes, [string]$sourceAppId) {
-        if ($sourceAppId -notmatch '(?i)brave' -or $null -eq $imageBytes -or $imageBytes.Length -eq 0) {
-            return $false
+    function Get-SourceApplicationProcessPath([string]$sourceAppId) {
+        if ([string]::IsNullOrWhiteSpace($sourceAppId)) { return $null }
+
+        $source = $sourceAppId.ToLowerInvariant()
+        $aliases = @{
+            'brave' = @('brave')
+            'chrome' = @('chrome')
+            'edge' = @('msedge')
+            'firefox' = @('firefox')
+            'opera' = @('opera')
+            'vivaldi' = @('vivaldi')
+            'spotify' = @('spotify')
+            'yesify' = @('yesify')
+            'vlc' = @('vlc')
+            'foobar' = @('foobar2000')
+            'musicbee' = @('MusicBee')
+            'itunes' = @('iTunes')
+            'windows media player' = @('wmplayer')
+            'zunemusic' = @('Music.UI')
         }
+        $processNames = New-Object 'System.Collections.Generic.List[string]'
+
+        foreach ($alias in $aliases.Keys) {
+            if ($source.Contains($alias)) {
+                foreach ($processName in $aliases[$alias]) {
+                    if (-not $processNames.Contains($processName)) { $processNames.Add($processName) }
+                }
+            }
+        }
+
+        $ignoredTokens = @('com', 'org', 'net', 'app', 'desktop', 'application', 'windows', 'microsoft', 'media', 'player', 'browser', 'stable', 'client')
+        foreach ($token in ($source -split '[^a-z0-9]+')) {
+            if ($token.Length -ge 4 -and $ignoredTokens -notcontains $token -and -not $processNames.Contains($token)) {
+                $processNames.Add($token)
+            }
+        }
+
+        foreach ($processName in $processNames) {
+            $process = Get-Process -Name $processName -ErrorAction SilentlyContinue | Select-Object -First 1
+            if ($null -ne $process -and -not [string]::IsNullOrWhiteSpace($process.Path)) {
+                return $process.Path
+            }
+        }
+
+        return $null
+    }
+
+    function Test-ApplicationIconThumbnail([byte[]]$imageBytes, [string]$sourceAppId) {
+        if ($null -eq $imageBytes -or $imageBytes.Length -eq 0) { return $false }
 
         $imageStream = $null
         $thumbnail = $null
@@ -33,12 +78,12 @@ try {
         $iconSample = $null
         $iconGraphics = $null
         try {
-            $process = Get-Process -Name 'brave' -ErrorAction SilentlyContinue | Select-Object -First 1
-            if ($null -eq $process -or [string]::IsNullOrWhiteSpace($process.Path)) { return $false }
+            $processPath = Get-SourceApplicationProcessPath $sourceAppId
+            if ([string]::IsNullOrWhiteSpace($processPath)) { return $false }
 
             $imageStream = [System.IO.MemoryStream]::new($imageBytes)
             $thumbnail = [System.Drawing.Image]::FromStream($imageStream)
-            $icon = [System.Drawing.Icon]::ExtractAssociatedIcon($process.Path)
+            $icon = [System.Drawing.Icon]::ExtractAssociatedIcon($processPath)
             if ($null -eq $icon) { return $false }
             $iconBitmap = $icon.ToBitmap()
             $thumbnailSample = [System.Drawing.Bitmap]::new(16, 16)
@@ -149,7 +194,7 @@ try {
                         if ($byteCount -gt 0) {
                             $bytes = [byte[]]::new([int]$byteCount)
                             $reader.ReadBytes($bytes)
-                            if (Test-BraveLogoThumbnail $bytes ([string]$session.SourceAppUserModelId)) {
+                            if (Test-ApplicationIconThumbnail $bytes ([string]$session.SourceAppUserModelId)) {
                                 $snapshot.cover = ''
                             } else {
                                 $snapshot.cover = [Convert]::ToBase64String($bytes)
