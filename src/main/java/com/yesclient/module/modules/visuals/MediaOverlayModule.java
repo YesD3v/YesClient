@@ -64,6 +64,10 @@ public class MediaOverlayModule extends Module {
     private Thread readerThread;
     private volatile MediaSnapshot snapshot = MediaSnapshot.EMPTY;
     private volatile long missingMediaSince;
+    private volatile String pendingBackwardTrackKey = "";
+    private volatile double pendingBackwardPosition;
+    private volatile long pendingBackwardReceivedAt;
+    private volatile long pendingBackwardTimelineUpdatedAt;
 
     private String textureTrackKey;
     private int textureArtSize;
@@ -120,6 +124,7 @@ public class MediaOverlayModule extends Module {
         }
         snapshot = MediaSnapshot.EMPTY;
         missingMediaSince = 0L;
+        clearPendingBackwardSeek();
     }
 
     @Override
@@ -218,7 +223,8 @@ public class MediaOverlayModule extends Module {
 
         double position = media.positionSeconds;
         if (media.playing) {
-            position += Math.max(0L, System.currentTimeMillis() - media.receivedAt) / 1000.0D;
+            long now = System.nanoTime() / 1000000L;
+            position += Math.max(0L, now - media.receivedAt) / 1000.0D;
         }
         double progress = media.transitioning ? 1.0D : (media.durationSeconds > 0.0D
                 ? Math.max(0.0D, Math.min(1.0D, position / media.durationSeconds))
@@ -415,9 +421,9 @@ public class MediaOverlayModule extends Module {
             String artist = jsonString(json, "artist");
             String trackKey = jsonString(json, "trackKey");
             boolean playing = json.has("playing") && json.get("playing").getAsBoolean();
-            double position = json.has("position") ? json.get("position").getAsDouble() : 0.0D;
+            double reportedPosition = json.has("position") ? json.get("position").getAsDouble() : 0.0D;
             double duration = json.has("duration") ? json.get("duration").getAsDouble() : 0.0D;
-            long receivedAt = System.currentTimeMillis();
+            long receivedAt = System.nanoTime() / 1000000L;
             long timelineUpdatedAt = json.has("updatedAt") ? json.get("updatedAt").getAsLong() : 0L;
             String encodedCover = jsonString(json, "cover");
 
@@ -429,8 +435,8 @@ public class MediaOverlayModule extends Module {
                     }
                     if (receivedAt - missingMediaSince <= 3000L) {
                         snapshot = new MediaSnapshot(true, previous.title, previous.artist, previous.trackKey,
-                                previous.coverBytes, false, previous.durationSeconds, previous.durationSeconds,
-                                receivedAt, previous.timelineUpdatedAt, true);
+                                previous.coverBytes, false, previous.durationSeconds, previous.reportedPositionSeconds,
+                                previous.durationSeconds, receivedAt, previous.timelineUpdatedAt, true);
                         return;
                     }
                 }
@@ -449,27 +455,72 @@ public class MediaOverlayModule extends Module {
                 coverBytes = snapshot.coverBytes;
             }
 
-            position = Math.max(0.0D, position);
+            reportedPosition = Math.max(0.0D, reportedPosition);
             duration = Math.max(0.0D, duration);
-            if (playing) {
-                if (timelineUpdatedAt > 0L) {
-                    position += Math.max(0L, receivedAt - timelineUpdatedAt) / 1000.0D;
-                }
-                if (previous.active && previous.playing && trackKey.equals(previous.trackKey)) {
-                    double previousPosition = previous.positionSeconds
-                            + Math.max(0L, receivedAt - previous.receivedAt) / 1000.0D;
-                    boolean movedBack = timelineUpdatedAt > previous.timelineUpdatedAt
-                            && position + 1.5D < previousPosition;
-                    if (!movedBack) {
-                        position = Math.max(position, previousPosition);
+            double position = reportedPosition;
+            boolean samePlayingTrack = playing && previous.active && previous.playing
+                    && trackKey.equals(previous.trackKey);
+            if (samePlayingTrack) {
+                double elapsed = Math.max(0L, receivedAt - previous.receivedAt) / 1000.0D;
+                double expectedPosition = previous.positionSeconds + elapsed;
+                boolean pendingSeek = trackKey.equals(pendingBackwardTrackKey);
+                boolean handled = false;
+                if (pendingSeek) {
+                    double expectedSeekPosition = pendingBackwardPosition
+                            + Math.max(0L, receivedAt - pendingBackwardReceivedAt) / 1000.0D;
+                    boolean coherentSeek = timelineUpdatedAt >= pendingBackwardTimelineUpdatedAt
+                            && reportedPosition > pendingBackwardPosition + 0.15D
+                            && Math.abs(reportedPosition - expectedSeekPosition) <= 1.0D
+                            && reportedPosition + 1.5D < expectedPosition;
+                    if (coherentSeek) {
+                        position = reportedPosition;
+                        clearPendingBackwardSeek();
+                        handled = true;
+                    } else if (reportedPosition + 1.5D >= expectedPosition) {
+                        clearPendingBackwardSeek();
+                        position = Math.max(reportedPosition, expectedPosition);
+                        handled = true;
+                    } else if (reportedPosition + 1.5D < previous.reportedPositionSeconds
+                            && timelineUpdatedAt > previous.timelineUpdatedAt) {
+                        pendingBackwardPosition = reportedPosition;
+                        pendingBackwardReceivedAt = receivedAt;
+                        pendingBackwardTimelineUpdatedAt = timelineUpdatedAt;
+                        position = expectedPosition;
+                        handled = true;
+                    } else {
+                        position = expectedPosition;
+                        handled = true;
                     }
                 }
+                if (!handled) {
+                    boolean movedBack = reportedPosition + 1.5D < previous.reportedPositionSeconds
+                            && timelineUpdatedAt > previous.timelineUpdatedAt;
+                    if (movedBack) {
+                        pendingBackwardTrackKey = trackKey;
+                        pendingBackwardPosition = reportedPosition;
+                        pendingBackwardReceivedAt = receivedAt;
+                        pendingBackwardTimelineUpdatedAt = timelineUpdatedAt;
+                        position = expectedPosition;
+                    } else {
+                        clearPendingBackwardSeek();
+                        position = Math.max(reportedPosition, expectedPosition);
+                    }
+                }
+            } else {
+                clearPendingBackwardSeek();
             }
             snapshot = new MediaSnapshot(true, title, artist, trackKey, coverBytes, playing,
-                    position, duration, receivedAt, timelineUpdatedAt, false);
+                    position, reportedPosition, duration, receivedAt, timelineUpdatedAt, false);
         } catch (Exception ignored) {
              
         }
+    }
+
+    private void clearPendingBackwardSeek() {
+        pendingBackwardTrackKey = "";
+        pendingBackwardPosition = 0.0D;
+        pendingBackwardReceivedAt = 0L;
+        pendingBackwardTimelineUpdatedAt = 0L;
     }
 
     private String jsonString(JsonObject json, String key) {
@@ -485,7 +536,7 @@ public class MediaOverlayModule extends Module {
 
     private static final class MediaSnapshot {
         private static final MediaSnapshot EMPTY = new MediaSnapshot(false, "", "", "", null, false, 0.0D,
-                0.0D, 0L, 0L, false);
+                0.0D, 0.0D, 0L, 0L, false);
 
         private final boolean active;
         private final String title;
@@ -494,14 +545,15 @@ public class MediaOverlayModule extends Module {
         private final byte[] coverBytes;
         private final boolean playing;
         private final double positionSeconds;
+        private final double reportedPositionSeconds;
         private final double durationSeconds;
         private final long receivedAt;
         private final long timelineUpdatedAt;
         private final boolean transitioning;
 
         private MediaSnapshot(boolean active, String title, String artist, String trackKey, byte[] coverBytes,
-                boolean playing, double positionSeconds, double durationSeconds, long receivedAt,
-                long timelineUpdatedAt, boolean transitioning) {
+                boolean playing, double positionSeconds, double reportedPositionSeconds, double durationSeconds,
+                long receivedAt, long timelineUpdatedAt, boolean transitioning) {
             this.active = active;
             this.title = title;
             this.artist = artist;
@@ -509,6 +561,7 @@ public class MediaOverlayModule extends Module {
             this.coverBytes = coverBytes;
             this.playing = playing;
             this.positionSeconds = positionSeconds;
+            this.reportedPositionSeconds = reportedPositionSeconds;
             this.durationSeconds = durationSeconds;
             this.receivedAt = receivedAt;
             this.timelineUpdatedAt = timelineUpdatedAt;

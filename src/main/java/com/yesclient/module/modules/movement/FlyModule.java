@@ -31,8 +31,6 @@ public class FlyModule extends Module {
 
 
 
-    private boolean serverAllowedFlying = false;
-
     public FlyModule() {
         super("Creative Flight", "Creative-mode flight with double-tap space", Category.MOVEMENT, ModuleMode.BOTH);
 
@@ -63,7 +61,8 @@ public class FlyModule extends Module {
 
     @Override
     public String getDisplayInfo() {
-        return mc.thePlayer != null && mc.thePlayer.capabilities.isFlying ? "Active" : "Ready";
+        return mc.thePlayer != null && mc.thePlayer.capabilities.isCreativeMode
+                && mc.thePlayer.capabilities.isFlying ? "Active" : "Ready";
     }
 
     @Override
@@ -72,42 +71,34 @@ public class FlyModule extends Module {
             originalFlySpeed = mc.thePlayer.capabilities.getFlySpeed();
             startY = mc.thePlayer.posY;
 
-             
-            serverAllowedFlying = mc.thePlayer.capabilities.allowFlying;
+            if (mc.thePlayer.capabilities.isCreativeMode && !doubleTap.isEnabled()) {
+                mc.thePlayer.capabilities.allowFlying = true;
+                mc.thePlayer.capabilities.isFlying = true;
 
-             
-            if (isBlatantModeEnabled() || mc.thePlayer.capabilities.isCreativeMode) {
-                if (!doubleTap.isEnabled()) {
-                     
-                    mc.thePlayer.capabilities.allowFlying = true;
-                    mc.thePlayer.capabilities.isFlying = true;
+                if (isBlatantModeEnabled() && flightMode.is("Constant")) {
+                    mc.thePlayer.capabilities.setFlySpeed(0.0f);
+                    applyConstantVelocity();
+                } else {
+                    float flySpeed = (float) (speed.getValue() * 0.05f);
+                    mc.thePlayer.capabilities.setFlySpeed(flySpeed);
+                }
 
-                     
-                    if (isBlatantModeEnabled() && flightMode.is("Constant")) {
-                        mc.thePlayer.capabilities.setFlySpeed(0.0f);
-                        applyConstantVelocity();
-                    } else {
-                        float flySpeed = (float) (speed.getValue() * 0.05f);
-                        mc.thePlayer.capabilities.setFlySpeed(flySpeed);
-                    }
-
-                     
-                    if (mc.thePlayer.onGround) {
-                        mc.thePlayer.motionY = 0.1;
-                        startY = mc.thePlayer.posY + 0.1;
-                    }
+                if (mc.thePlayer.onGround) {
+                    mc.thePlayer.motionY = 0.1;
+                    startY = mc.thePlayer.posY + 0.1;
                 }
             }
-             
-             
         }
     }
 
     @Override
     protected void onDisable() {
         if (mc.thePlayer != null) {
-             
             mc.thePlayer.capabilities.setFlySpeed(originalFlySpeed);
+
+            if (!mc.thePlayer.capabilities.isCreativeMode) {
+                return;
+            }
 
             if (isBlatantModeEnabled() && flightMode.is("Constant")) {
                 mc.thePlayer.motionX = 0;
@@ -115,22 +106,6 @@ public class FlyModule extends Module {
                 mc.thePlayer.motionZ = 0;
             }
 
-             
-            if (!isBlatantModeEnabled()) {
-                if (mc.thePlayer.capabilities.isCreativeMode) {
-                     
-                    mc.thePlayer.capabilities.allowFlying = true;
-                } else {
-                     
-                    mc.thePlayer.capabilities.allowFlying = serverAllowedFlying;
-                    if (!serverAllowedFlying) {
-                        mc.thePlayer.capabilities.isFlying = false;
-                    }
-                }
-                return;
-            }
-
-             
             if (mc.thePlayer.capabilities.isFlying) {
                 mc.thePlayer.motionY = -0.1;
             }
@@ -141,12 +116,7 @@ public class FlyModule extends Module {
                 mc.thePlayer.motionZ = 0;
             }
 
-            if (mc.thePlayer.capabilities.isCreativeMode) {
-                mc.thePlayer.capabilities.allowFlying = true;
-            } else {
-                mc.thePlayer.capabilities.isFlying = false;
-                mc.thePlayer.capabilities.allowFlying = false;
-            }
+            mc.thePlayer.capabilities.allowFlying = true;
         }
     }
 
@@ -154,10 +124,6 @@ public class FlyModule extends Module {
 
 
 
-
-    public void updateServerFlyState(boolean allowFlying) {
-        this.serverAllowedFlying = allowFlying;
-    }
 
     private void updateSettingsVisibility() {
         if (!isBlatantModeEnabled()) {
@@ -192,38 +158,22 @@ public class FlyModule extends Module {
         if (mc.thePlayer == null || mc.theWorld == null)
             return;
 
-         
-        if (!isBlatantModeEnabled()) {
-            updateSettingsVisibility();
-
-            if (mc.thePlayer.capabilities.isCreativeMode) {
-                 
-                mc.thePlayer.capabilities.allowFlying = true;
-
-                float flySpeed = (float) (speed.getValue() * 0.05f);
-                if (mc.thePlayer.isSprinting()) {
-                    flySpeed = (float) (sprintSpeed.getValue() * 0.05f);
-                }
-                mc.thePlayer.capabilities.setFlySpeed(flySpeed);
-            } else if (serverAllowedFlying) {
-                 
-                 
-                mc.thePlayer.capabilities.allowFlying = true;
-
-                float flySpeed = (float) (speed.getValue() * 0.05f);
-                if (mc.thePlayer.isSprinting()) {
-                    flySpeed = (float) (sprintSpeed.getValue() * 0.05f);
-                }
-                mc.thePlayer.capabilities.setFlySpeed(flySpeed);
-            } else {
-                 
-                 
-                mc.thePlayer.capabilities.setFlySpeed(0.05f);  
-            }
+        updateSettingsVisibility();
+        if (!mc.thePlayer.capabilities.isCreativeMode) {
             return;
         }
 
-         
+        if (!isBlatantModeEnabled()) {
+            mc.thePlayer.capabilities.allowFlying = true;
+
+            float flySpeed = (float) (speed.getValue() * 0.05f);
+            if (mc.thePlayer.isSprinting()) {
+                flySpeed = (float) (sprintSpeed.getValue() * 0.05f);
+            }
+            mc.thePlayer.capabilities.setFlySpeed(flySpeed);
+            return;
+        }
+
         if (mc.thePlayer == null || mc.theWorld == null)
             return;
 

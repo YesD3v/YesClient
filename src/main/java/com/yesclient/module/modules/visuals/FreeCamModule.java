@@ -1,12 +1,20 @@
 package com.yesclient.module.modules.visuals;
 
+import java.awt.Color;
+import java.util.ArrayList;
+import java.util.List;
+
 import com.yesclient.module.Category;
 import com.yesclient.module.Module;
 import com.yesclient.module.ModuleMode;
 import com.yesclient.module.settings.BooleanSetting;
 import com.yesclient.module.settings.NumberSetting;
+import com.yesclient.utils.RenderUtils;
 import net.minecraft.client.entity.EntityOtherPlayerMP;
 import net.minecraft.entity.Entity;
+import net.minecraft.util.AxisAlignedBB;
+import net.minecraft.util.BlockPos;
+import net.minecraft.client.renderer.entity.RenderManager;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import org.lwjgl.input.Keyboard;
 
@@ -27,7 +35,7 @@ public class FreeCamModule extends Module {
     private final BooleanSetting showPlayer = new BooleanSetting("Show Player", "Show your body at real position",
             true);
     private final BooleanSetting allowInteractions = new BooleanSetting("Allow Interactions",
-            "Allow interacting with the world from camera position", true);
+            "Allow block and entity actions only within five blocks of your body", true);
 
      
     private EntityOtherPlayerMP cameraEntity;
@@ -51,6 +59,10 @@ public class FreeCamModule extends Module {
 
      
     private boolean savedSneaking;
+
+    private static final double INTERACTION_RADIUS = 5.0D;
+    private static final double INTERACTION_RADIUS_SQ = INTERACTION_RADIUS * INTERACTION_RADIUS;
+    private static final Color INTERACTION_HIGHLIGHT = new Color(0, 255, 0, 230);
 
     public FreeCamModule() {
         super("FreeCam", "True detached camera (anticheat safe)", Category.VISUALS, ModuleMode.BOTH);
@@ -358,6 +370,70 @@ public class FreeCamModule extends Module {
 
     public float getSavedPitch() {
         return savedPitch;
+    }
+
+    public boolean canInteractWithBlock(BlockPos pos) {
+        return allowInteractions.isEnabled() && isBlockWithinInteractionRadius(pos);
+    }
+
+    public boolean canInteractWithEntity(Entity entity) {
+        return allowInteractions.isEnabled() && entity != null && entity != mc.thePlayer
+                && entity != cameraEntity && entity != ghostEntity && entity.getEntityId() >= 0
+                && isEntityWithinInteractionRadius(entity);
+    }
+
+    public boolean canUseItemFromCamera() {
+        if (!allowInteractions.isEnabled() || mc.thePlayer == null) return false;
+        Entity camera = cameraEntity != null ? cameraEntity : mc.thePlayer;
+        double dx = camera.posX - savedX;
+        double dy = camera.posY - savedY;
+        double dz = camera.posZ - savedZ;
+        return dx * dx + dy * dy + dz * dz <= INTERACTION_RADIUS_SQ;
+    }
+
+    public boolean isBlockWithinInteractionRadius(BlockPos pos) {
+        if (pos == null) return false;
+        double eyeY = savedY + 1.62D;
+        double dx = distanceToInterval(savedX, pos.getX(), pos.getX() + 1.0D);
+        double dy = distanceToInterval(eyeY, pos.getY(), pos.getY() + 1.0D);
+        double dz = distanceToInterval(savedZ, pos.getZ(), pos.getZ() + 1.0D);
+        return dx * dx + dy * dy + dz * dz <= INTERACTION_RADIUS_SQ;
+    }
+
+    public boolean isEntityWithinInteractionRadius(Entity entity) {
+        if (entity == null) return false;
+        AxisAlignedBB box = entity.getEntityBoundingBox();
+        if (box == null) return false;
+        double eyeY = savedY + 1.62D;
+        double dx = distanceToInterval(savedX, box.minX, box.maxX);
+        double dy = distanceToInterval(eyeY, box.minY, box.maxY);
+        double dz = distanceToInterval(savedZ, box.minZ, box.maxZ);
+        return dx * dx + dy * dy + dz * dz <= INTERACTION_RADIUS_SQ;
+    }
+
+    private double distanceToInterval(double value, double min, double max) {
+        if (value < min) return min - value;
+        if (value > max) return value - max;
+        return 0.0D;
+    }
+
+    @Override
+    public void onRender3D(float partialTicks) {
+        if (mc.theWorld == null || mc.thePlayer == null || !allowInteractions.isEnabled()) return;
+
+        RenderManager renderManager = mc.getRenderManager();
+        List<AxisAlignedBB> boxes = new ArrayList<>();
+        for (Entity entity : mc.theWorld.loadedEntityList) {
+            if (entity == cameraEntity || entity == ghostEntity
+                    || entity.getEntityId() < 0 || !isEntityWithinInteractionRadius(entity)) continue;
+            AxisAlignedBB box = entity.getEntityBoundingBox();
+            if (box != null) {
+                boxes.add(box.offset(-renderManager.viewerPosX, -renderManager.viewerPosY,
+                        -renderManager.viewerPosZ));
+            }
+        }
+
+        if (!boxes.isEmpty()) RenderUtils.drawOutlinedBoxes(boxes, INTERACTION_HIGHLIGHT, 1.5F);
     }
 
     public boolean isAllowInteractions() {

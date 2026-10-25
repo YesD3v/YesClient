@@ -6,7 +6,6 @@ import com.yesclient.module.ModuleMode;
 import com.yesclient.module.settings.BooleanSetting;
 import com.yesclient.module.settings.NumberSetting;
 import net.minecraft.entity.Entity;
-import net.minecraft.util.Vec3;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
 
@@ -103,14 +102,6 @@ public class FreeLookModule extends Module {
     public float cameraPitch(Entity entity, float vanillaPitch) {
         return isEnabled() && entity == mc.thePlayer ? cameraPitch : vanillaPitch;
     }
-    public Vec3 cameraLook(Entity entity, float partialTicks) {
-        if (!isEnabled() || entity != mc.thePlayer) return entity.getLook(partialTicks);
-        double yaw = Math.toRadians(cameraYaw);
-        double pitch = Math.toRadians(cameraPitch);
-        double horizontal = Math.cos(pitch);
-        return new Vec3(-Math.sin(yaw) * horizontal, -Math.sin(pitch), Math.cos(yaw) * horizontal);
-    }
-
     public double getCameraDistance() {
         return sessionDistance;
     }

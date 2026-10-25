@@ -14,8 +14,11 @@ import net.minecraft.network.NetworkManager;
 import net.minecraft.network.Packet;
 import net.minecraft.network.play.client.C0BPacketEntityAction;
 import net.minecraft.network.play.client.C02PacketUseEntity;
+import net.minecraft.network.play.client.C07PacketPlayerDigging;
+import net.minecraft.network.play.client.C08PacketPlayerBlockPlacement;
 import net.minecraft.network.play.server.S08PacketPlayerPosLook;
 import net.minecraft.network.play.server.S3APacketTabComplete;
+import net.minecraft.entity.Entity;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -76,55 +79,49 @@ public class MixinNetworkManager {
              
         }
 
-         
-         
         try {
-            if (packet instanceof C0BPacketEntityAction) {
-                FreeCamModule freeCam = YesClient.getInstance().getModuleManager().getModule(FreeCamModule.class);
-                if (freeCam != null && freeCam.isEnabled()) {
-                    C0BPacketEntityAction actionPacket = (C0BPacketEntityAction) packet;
-                    C0BPacketEntityAction.Action action = actionPacket.getAction();
-                    if (action == C0BPacketEntityAction.Action.START_SNEAKING
-                            || action == C0BPacketEntityAction.Action.STOP_SNEAKING) {
-                        ci.cancel();
-                    }
+            FreeCamModule freeCam = YesClient.getInstance().getModuleManager().getModule(FreeCamModule.class);
+            if (freeCam == null || !freeCam.isEnabled()) return;
+
+            if (packet instanceof C07PacketPlayerDigging) {
+                if (!freeCam.canInteractWithBlock(((C07PacketPlayerDigging) packet).getPosition())) {
+                    ci.cancel();
+                    return;
                 }
-            }
-        } catch (Throwable t) {
-             
-        }
-
-         
-        try {
-            if (packet instanceof C02PacketUseEntity) {
-                FreeCamModule freeCam = YesClient.getInstance().getModuleManager().getModule(FreeCamModule.class);
-                if (freeCam != null && freeCam.isEnabled()) {
-                    C02PacketUseEntity usePacket = (C02PacketUseEntity) packet;
-                    int targetId = -1;
-
+            } else if (packet instanceof C08PacketPlayerBlockPlacement) {
+                net.minecraft.util.BlockPos pos = ((C08PacketPlayerBlockPlacement) packet).getPosition();
+                boolean airUse = pos == null || (pos.getX() == -1 && pos.getY() == -1 && pos.getZ() == -1);
+                if (airUse ? !freeCam.canUseItemFromCamera() : !freeCam.canInteractWithBlock(pos)) {
+                    ci.cancel();
+                    return;
+                }
+            } else if (packet instanceof C02PacketUseEntity) {
+                C02PacketUseEntity usePacket = (C02PacketUseEntity) packet;
+                int targetId = -1;
+                try {
+                    Field field = usePacket.getClass().getDeclaredField("field_149567_a");
+                    field.setAccessible(true);
+                    targetId = field.getInt(usePacket);
+                } catch (Exception ignored) {
                     try {
-                         
-                        Field f = usePacket.getClass().getDeclaredField("field_149567_a");
-                        f.setAccessible(true);
-                        targetId = f.getInt(usePacket);
-                    } catch (Exception e1) {
-                        try {
-                             
-                            Field f = usePacket.getClass().getDeclaredField("entityId");
-                            f.setAccessible(true);
-                            targetId = f.getInt(usePacket);
-                        } catch (Exception e2) {
-                             
-                        }
-                    }
-
-                    if (targetId != -1 && targetId == YesClient.getMinecraft().thePlayer.getEntityId()) {
-                        ci.cancel();
+                        Field field = usePacket.getClass().getDeclaredField("entityId");
+                        field.setAccessible(true);
+                        targetId = field.getInt(usePacket);
+                    } catch (Exception ignoredAgain) {
                     }
                 }
+                net.minecraft.client.Minecraft minecraft = YesClient.getMinecraft();
+                Entity target = minecraft == null || minecraft.theWorld == null || targetId < 0
+                        ? null : minecraft.theWorld.getEntityByID(targetId);
+                if (!freeCam.canInteractWithEntity(target)) {
+                    ci.cancel();
+                    return;
+                }
+            } else if (packet instanceof C0BPacketEntityAction && !freeCam.canUseItemFromCamera()) {
+                ci.cancel();
+                return;
             }
-        } catch (Throwable t) {
-             
+        } catch (Throwable ignored) {
         }
     }
 

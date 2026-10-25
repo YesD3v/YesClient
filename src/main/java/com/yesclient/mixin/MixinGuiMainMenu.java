@@ -18,6 +18,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import com.yesclient.gui.ToggleNotification;
+import com.yesclient.gui.YesClientLaunchAnimation;
 
 import java.util.List;
 import java.util.ArrayList;
@@ -102,6 +103,11 @@ public class MixinGuiMainMenu extends GuiScreen {
 
     @Inject(method = "func_73876_c", at = @At("HEAD"))
     private void onUpdateScreen(CallbackInfo ci) {
+        boolean launchAnimationActive = YesClientLaunchAnimation.isActive();
+        for (GuiButton button : this.buttonList) {
+            if (button.id == 6969) button.visible = !launchAnimationActive;
+        }
+
         CookieAltManager manager = CookieAltManager.getInstance();
         if (!savedAccountRestoreStarted && targetLoginAccount == null) {
             savedAccountRestoreStarted = true;
@@ -134,7 +140,10 @@ public class MixinGuiMainMenu extends GuiScreen {
 
     @Inject(method = "func_73866_w_", at = @At("RETURN"))
     private void onInitGui(CallbackInfo ci) {
-        this.buttonList.add(new GuiButton(6969, this.width - 24, this.height - 24, 20, 20, ""));
+        YesClientLaunchAnimation.begin();
+        GuiButton contentButton = new GuiButton(6969, this.width - 24, this.height - 24, 20, 20, "");
+        contentButton.visible = !YesClientLaunchAnimation.isActive();
+        this.buttonList.add(contentButton);
     }
 
     @Redirect(method = "func_73863_a", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/GuiMainMenu;func_73731_b(Lnet/minecraft/client/gui/FontRenderer;Ljava/lang/String;III)V"))
@@ -148,7 +157,7 @@ public class MixinGuiMainMenu extends GuiScreen {
     @Inject(method = "func_73863_a", at = @At("RETURN"))
     private void drawYesClientAccount(int mouseX, int mouseY, float partialTicks, CallbackInfo ci) {
         for (GuiButton button : this.buttonList) {
-            if (button.id == 6969) {
+            if (button.id == 6969 && button.visible) {
                 net.minecraft.client.renderer.RenderHelper.enableGUIStandardItemLighting();
                 this.mc.getRenderItem().renderItemIntoGUI(new net.minecraft.item.ItemStack(net.minecraft.init.Items.book), button.xPosition + 2, button.yPosition + 2);
                 net.minecraft.client.renderer.RenderHelper.disableStandardItemLighting();
@@ -197,7 +206,10 @@ public class MixinGuiMainMenu extends GuiScreen {
 
         ToggleNotification.render();
 
-        if (!accountDropdownOpen) return;
+        if (!accountDropdownOpen) {
+            YesClientLaunchAnimation.render(width, height);
+            return;
+        }
 
         List<CookieAltManager.AltAccount> accounts = new ArrayList<>(manager.getAccounts());
         final String finalUsername = username;
@@ -209,6 +221,7 @@ public class MixinGuiMainMenu extends GuiScreen {
 
         if (accounts.isEmpty()) {
             fontRendererObj.drawString("No saved accounts", ACCOUNT_X + 12, menuY + 12, TEXT_DIM);
+            YesClientLaunchAnimation.render(width, height);
             return;
         }
 
@@ -227,6 +240,7 @@ public class MixinGuiMainMenu extends GuiScreen {
             String name = account.username == null || account.username.isEmpty() ? "Unknown" : account.username;
             fontRendererObj.drawString(name, ACCOUNT_X + 42, rowY + 9, TEXT_WHITE);
         }
+        YesClientLaunchAnimation.render(width, height);
     }
 
     private void drawSpinner(int x, int y) {

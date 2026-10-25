@@ -8,7 +8,6 @@ public enum Category {
     VISUALS("Visuals", new Color(200, 0, 255), "visuals"),
     COMBAT("Combat", new Color(255, 50, 50), "combat"),
     MISC("Misc", new Color(100, 255, 100), "misc"),
-    BUILDING("Building", new Color(255, 165, 0), "building"),
     EXPLOIT("Exploit", new Color(255, 100, 150), "exploit"),
     ITEMS("Items", new Color(255, 215, 0), "items"),
     CLIENT("Client", new Color(150, 150, 150), "client"),

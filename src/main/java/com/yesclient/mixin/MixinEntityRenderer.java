@@ -68,22 +68,13 @@ public class MixinEntityRenderer {
     @Redirect(method = "func_78473_a", at = @At(value = "INVOKE",
             target = "Lnet/minecraft/entity/Entity;func_174822_a(DF)Lnet/minecraft/util/MovingObjectPosition;"))
     private MovingObjectPosition yesclient$freeLookBlockRay(Entity entity, double reach, float partialTicks) {
-        FreeLookModule freeLook = yesclient$freeLook();
-        if (freeLook == null || !freeLook.isEnabled()
-                || entity != net.minecraft.client.Minecraft.getMinecraft().thePlayer) {
-            return entity.rayTrace(reach, partialTicks);
-        }
-        Vec3 start = entity.getPositionEyes(partialTicks);
-        Vec3 look = freeLook.cameraLook(entity, partialTicks);
-        Vec3 end = start.addVector(look.xCoord * reach, look.yCoord * reach, look.zCoord * reach);
-        return entity.worldObj.rayTraceBlocks(start, end);
+        return entity.rayTrace(reach, partialTicks);
     }
 
     @Redirect(method = "func_78473_a", at = @At(value = "INVOKE",
             target = "Lnet/minecraft/entity/Entity;func_70676_i(F)Lnet/minecraft/util/Vec3;"))
     private Vec3 yesclient$freeLookPickVector(Entity entity, float partialTicks) {
-        FreeLookModule freeLook = yesclient$freeLook();
-        return freeLook == null ? entity.getLook(partialTicks) : freeLook.cameraLook(entity, partialTicks);
+        return entity.getLook(partialTicks);
     }
 
      

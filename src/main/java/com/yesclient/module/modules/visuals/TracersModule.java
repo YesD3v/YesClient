@@ -13,12 +13,14 @@ import com.yesclient.utils.RenderUtils;
 import net.minecraft.client.network.NetworkPlayerInfo;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.item.EntityArmorStand;
+import net.minecraft.entity.item.EntityItemFrame;
 import net.minecraft.entity.monster.EntityMob;
 import net.minecraft.entity.passive.EntityAnimal;
 import net.minecraft.entity.passive.EntityVillager;
 import net.minecraft.client.renderer.entity.RenderManager;
 import net.minecraft.scoreboard.ScorePlayerTeam;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.tileentity.TileEntity;
 
 
 public class TracersModule extends Module {
@@ -27,6 +29,8 @@ public class TracersModule extends Module {
     private final BooleanSetting mobs = new BooleanSetting("Mobs", "Trace to hostile mobs", false);
     private final BooleanSetting animals = new BooleanSetting("Animals", "Trace to passive animals", false);
     private final BooleanSetting npcs = new BooleanSetting("NPCs", "Trace to NPCs", false);
+    private final BooleanSetting itemFrames = new BooleanSetting("Item Frames", "Trace to item frames", true);
+    private final BooleanSetting storages = new BooleanSetting("Storages", "Trace to storage ESP blocks", true);
     private final BooleanSetting friendsOnly = new BooleanSetting("Friends Only", "Only trace to friends", false);
     private final NumberSetting width = new NumberSetting("Width", "Line width", 1.0, 0.5, 5.0, 0.5);
 
@@ -50,6 +54,8 @@ public class TracersModule extends Module {
         addSetting(mobs);
         addSetting(animals);
         addSetting(npcs);
+        addSetting(itemFrames);
+        addSetting(storages);
         addSetting(friendsOnly);
         addSetting(width);
         addSetting(rankColors);
@@ -100,6 +106,25 @@ public class TracersModule extends Module {
             }
         }
 
+        if (storages.isEnabled()) {
+            StorageESPModule storageEsp = com.yesclient.YesClient.getInstance().getModuleManager()
+                    .getModule(StorageESPModule.class);
+            if (storageEsp != null) {
+                RenderManager renderManager = mc.getRenderManager();
+                for (TileEntity tileEntity : mc.theWorld.loadedTileEntityList) {
+                    Color color = storageEsp.getColorForTileEntity(tileEntity);
+                    if (color == null) continue;
+                    double x = tileEntity.getPos().getX() + 0.5D - renderManager.viewerPosX;
+                    double y = tileEntity.getPos().getY() + 0.5D - renderManager.viewerPosY;
+                    double z = tileEntity.getPos().getZ() + 0.5D - renderManager.viewerPosZ;
+                    RenderUtils.drawLine(cameraPos.xCoord - renderManager.viewerPosX,
+                            cameraPos.yCoord - renderManager.viewerPosY,
+                            cameraPos.zCoord - renderManager.viewerPosZ,
+                            x, y, z, color.getRGB(), width.getFloatValue());
+                }
+            }
+        }
+
     }
 
     private boolean shouldRender(Entity entity) {
@@ -143,6 +168,8 @@ public class TracersModule extends Module {
             return animals.isEnabled();
         if (entity instanceof EntityVillager || entity instanceof EntityArmorStand)
             return npcs.isEnabled();
+        if (entity instanceof EntityItemFrame)
+            return itemFrames.isEnabled();
         return false;
     }
 
@@ -190,6 +217,8 @@ public class TracersModule extends Module {
             return mobColor.getValue();
         if (entity instanceof EntityAnimal)
             return animalColor.getValue();
+        if (entity instanceof EntityItemFrame)
+            return new Color(255, 215, 0);
         return npcColor.getValue();
     }
 

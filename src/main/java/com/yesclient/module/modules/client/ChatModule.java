@@ -118,7 +118,7 @@ public class ChatModule extends Module {
             String prefix = text.substring(cursor, matcher.start());
             result.append(prefix);
             activeFormatting = updateFormattingState(prefix, activeFormatting);
-            if (isUsername(matcher.group(), module.cachedUsernames)) {
+            if (module.isIgnoredUsername(matcher.group())) {
                 result.append(matcher.group());
             } else {
                 result.append(colorCode);
@@ -160,7 +160,7 @@ public class ChatModule extends Module {
         if (cachedKeywordPattern == null || isSelfMessage(text)) return null;
         Matcher matcher = cachedKeywordPattern.matcher(stripFormattingCodes(text));
         while (matcher.find()) {
-            if (!isUsername(matcher.group(), cachedUsernames)) return matcher.group();
+            if (!isIgnoredUsername(matcher.group())) return matcher.group();
         }
         return null;
     }
@@ -231,6 +231,15 @@ public class ChatModule extends Module {
         } catch (Throwable ignored) {
         }
         return ownNames;
+    }
+
+    private boolean isOwnUsernameKeyword(String text) {
+        String normalized = stripFormattingCodes(text).trim().toLowerCase(Locale.ROOT);
+        return cachedOwnUsernames.contains(normalized);
+    }
+
+    private boolean isIgnoredUsername(String text) {
+        return isUsername(text, cachedUsernames) && !isOwnUsernameKeyword(text);
     }
 
     private static boolean isUsername(String text, Set<String> usernames) {

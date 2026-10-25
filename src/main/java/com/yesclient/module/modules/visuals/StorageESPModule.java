@@ -79,7 +79,7 @@ public class StorageESPModule extends Module {
         }
     }
 
-    private Color getColorForTileEntity(TileEntity tileEntity) {
+    public Color getColorForTileEntity(TileEntity tileEntity) {
         if (tileEntity instanceof TileEntityChest) {
             TileEntityChest chest = (TileEntityChest) tileEntity;
             if (chest.getChestType() == 1) {

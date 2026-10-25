@@ -73,7 +73,6 @@ public class LegacyClickGUI extends GuiScreen {
         categories.add(new CategoryEntry(Category.MOVEMENT, "Movement"));
         categories.add(new CategoryEntry(Category.VISUALS, "Render"));
         categories.add(new CategoryEntry(Category.EXPLOIT, "Exploit"));
-        categories.add(new CategoryEntry(Category.BUILDING, "Building"));
         categories.add(new CategoryEntry(Category.INSTANT, "Instant"));
         categories.add(new CategoryEntry(Category.CLIENT, "Client"));
     }

@@ -1,8 +1,22 @@
-# YesClient 1.2.1
+# YesClient 1.2.6
 
-YesClient is a modular client-side mod for Minecraft Java Edition 1.8.9 and Forge. It combines visual tools, movement and quality-of-life options, HUD customization, inventory utilities, and server-specific tools in one in-game interface.
+YesClient is a client-side mod for Minecraft Java Edition 1.8.9 and Forge. It combines visual tools, movement options, moderation utilities, inventory helpers, and HUD customization in an in-game interface.
 
 Some modules alter gameplay or send non-vanilla actions. Use them only where the server rules allow them.
+
+## What's new in 1.2.6
+
+- **PP Builder:** automatically builds the configured vertical or horizontal template on the block you're targeting. Choose your held block or the stained-clay preset, preview pending and placed blocks, and have the module stop when the build finishes.
+- **Nick Detector:** checks the UUID version supplied with tab-list player profiles. Version 1 is marked as nicked, version 4 is treated as a real player, and version 3 NPCs are ignored. Confirmed nicks receive a client chat alert; no API key or external lookup is used.
+- **YesArmor:** adds banner and wool color cycles to the head slot, with monochrome and rainbow palettes, and restores replaced armor when disabled. Survival-mode auto-toggle behavior is more predictable.
+- **Startup and ClickGUI:** adds the YesClient logo draw-in and draw-out animation, and prepares ClickGUI fonts and textures during startup.
+- **FreeCam and FreeLook:** improves interaction handling and camera targeting; FreeCam outlines nearby entities without the removed block overlays.
+- **ESP and tracers:** adds item-frame and storage tracer targets and improves tracer/render origins and ESP integration.
+- **Media Overlay:** improves playback timing and progress display, artwork handling, and long title/artist scrolling.
+- **Flight and moderation:** separates Creative Flight from the survival Fly exploit, and improves repeated Griefer Detector alerts.
+- **Organization and rendering:** keeps module source directories aligned with ClickGUI categories and includes related rendering fixes.
+
+See [RELEASE_NOTES_1.2.6.md](RELEASE_NOTES_1.2.6.md) for the full release notes.
 
 ## Requirements
 
@@ -14,44 +28,24 @@ Some modules alter gameplay or send non-vanilla actions. Use them only where the
 
 1. Install and launch the Forge 1.8.9 profile once.
 2. Close Minecraft.
-3. Copy `YesClient-1.2.1.jar` into `.minecraft/mods`.
+3. Copy `YesClient-1.2.6.jar` into `.minecraft/mods`.
 4. Launch the Forge 1.8.9 profile.
 
 Keep one YesClient JAR in the `mods` folder so an older copy is not loaded alongside it. Press **Right Shift** in game to open the ClickGUI.
 
-## 1.2.1 highlights
-
-- **Motion Blur:** blend recent rendered frames with an adjustable strength control.
-- **Chat customization:** highlight whole-word keywords, adjust chat background opacity and text shadow, and tune the keyword alert pitch from 0 to 2.
-- **Blink controls:** optionally pace queued packet release across ticks and automatically disable Blink at a configurable packet limit from 0 to 50.
-- **Detector refinements:** reduce Pattern Detection scan load and update repeated Griefer Detector alerts in place, including block destruction.
-- **Module organization:** source folders now follow the in-game module categories; Media Overlay is listed under Visuals.
-- **HUD editor:** move and resize HUD elements, adjust scaling, and customize supported elements individually.
-- **Media Overlay:** show the active Windows media session with artwork, title, artist, and playback progress; customize the card appearance in the module settings.
-- **FreeLook:** orbit the view around the player while movement remains character-relative.
-- **Saved Hotbars:** save and load up to nine hotbars, including item NBT. The default shortcuts are `C` + `1–9` to save or overwrite and `X` + `1–9` to load.
-- **Block ESP:** search for selected blocks with bounded incremental scanning and rendering.
-- **Profiles and accounts:** manage client profiles and use the Microsoft account sign-in flow in the account manager.
-- **Module controls:** configure settings, keybinds, HUD readouts, and visual options in the ClickGUI.
-
 ## Module areas
 
-- **Visuals:** Block ESP, entity and storage ESP, tracers, nametags, FreeCam, FreeLook, scoreboard, and HUD readouts such as coordinates, FPS, CPS, ping, and TPS.
-- **Movement and quality of life:** creative flight, sprint, SafeWalk, Zoom, GUI Move, inventory tweaks, and Anti Void Lag.
-- **Building and inventory:** FastPlace, FastBreak, Ghost Blocks, saved hotbars, item tools, and NBT utilities.
-- **Moderation:** crash, griefer, nickname, and pattern detection tools.
+- **Visuals:** ESP, storage ESP, tracers, nametags, FreeCam, FreeLook, Media Overlay, YesArmor, and HUD readouts.
+- **Movement and quality of life:** Creative Flight, sprint, SafeWalk, Zoom, GUI Move, inventory helpers, and Anti Void Lag.
+- **Exploit and inventory:** Fly, PP Builder, FastPlace, FastBreak, saved hotbars, and NBT utilities.
+- **Moderation:** Nick Detector, Griefer Detector, Pattern Detection, and other server/player checks.
 - **Client:** ClickGUI, HUD Designer, module list, chat, friends, Fancy Text, and optional Discord Rich Presence.
-- **Server-sensitive tools:** projectile assistance, Blink, packet and item utilities, and other modules that may violate server rules or trigger server protections.
 
-The in-game module descriptions and settings are the definitive reference for each module’s behavior.
+The in-game module descriptions and settings are the definitive reference for each module's behavior.
 
-## Local data
+## Local data and privacy
 
-YesClient stores its settings and data under `.minecraft/yesclient/`. Item collections and saved hotbars use compressed Minecraft NBT data. Current storage files use `.dat` names; older item-storage files are migrated locally when loaded. Existing account and profile data remains in the YesClient data folder.
-
-## Network and privacy
-
-The current build does not include the old presence enrollment or heartbeat service. Network requests occur when a feature needs them, such as Microsoft/Xbox/Minecraft account sign-in, Mojang profile lookup, or external skin-face images. Discord Rich Presence communicates with the local Discord application over IPC when enabled. Account and profile files can contain sensitive data; do not share them publicly.
+YesClient stores settings and client data under `.minecraft/yesclient/`. Nick Detector reads the UUID version already present in the server's player list and makes no external API request. Network access is used only by features that need it, such as Microsoft account sign-in and external skin-face images. Discord Rich Presence communicates with the local Discord application over IPC when enabled. Account and profile files can contain sensitive data; do not share them publicly.
 
 ## Build from source
 
@@ -61,12 +55,13 @@ Use JDK 8 with the included Gradle wrapper:
 gradlew.bat clean assemble
 ```
 
-The JAR is written to `build/libs/YesClient-1.2.1.jar`.
+The JAR is written to `build/libs/YesClient-1.2.6.jar`.
 
 ## Project documentation
 
 - [Architecture notes](docs/ARCHITECTURE.md)
 - [Developer documentation index](docs/README.md)
-- [YesClient 1.2.1 GitHub release notes](RELEASE_NOTES_1.2.1.md)
+- [YesClient 1.2.6 release notes](RELEASE_NOTES_1.2.6.md)
+- [Previous 1.2.1 release notes](RELEASE_NOTES_1.2.1.md)
 - [Previous 1.2.0 release notes](RELEASE_NOTES_1.2.0.md)
 - [License](LICENSE)

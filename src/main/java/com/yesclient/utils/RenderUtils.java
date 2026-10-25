@@ -855,6 +855,10 @@ public class RenderUtils {
     }
 
     public static void drawOutlinedBox(AxisAlignedBB bb, Color color, float lineWidth) {
+        drawOutlinedBoxes(java.util.Collections.singletonList(bb), color, lineWidth);
+    }
+
+    public static void drawOutlinedBoxes(Iterable<AxisAlignedBB> boxes, Color color, float lineWidth) {
         float alpha = color.getAlpha() / 255.0F;
         float red = color.getRed() / 255.0F;
         float green = color.getGreen() / 255.0F;
@@ -872,34 +876,21 @@ public class RenderUtils {
         WorldRenderer wr = tessellator.getWorldRenderer();
         wr.begin(GL11.GL_LINES, DefaultVertexFormats.POSITION);
         GlStateManager.disableLighting();
-
-         
-        wr.pos(bb.minX, bb.minY, bb.minZ).endVertex();
-        wr.pos(bb.maxX, bb.minY, bb.minZ).endVertex();
-        wr.pos(bb.maxX, bb.minY, bb.minZ).endVertex();
-        wr.pos(bb.maxX, bb.minY, bb.maxZ).endVertex();
-        wr.pos(bb.maxX, bb.minY, bb.maxZ).endVertex();
-        wr.pos(bb.minX, bb.minY, bb.maxZ).endVertex();
-        wr.pos(bb.minX, bb.minY, bb.maxZ).endVertex();
-        wr.pos(bb.minX, bb.minY, bb.minZ).endVertex();
-         
-        wr.pos(bb.minX, bb.maxY, bb.minZ).endVertex();
-        wr.pos(bb.maxX, bb.maxY, bb.minZ).endVertex();
-        wr.pos(bb.maxX, bb.maxY, bb.minZ).endVertex();
-        wr.pos(bb.maxX, bb.maxY, bb.maxZ).endVertex();
-        wr.pos(bb.maxX, bb.maxY, bb.maxZ).endVertex();
-        wr.pos(bb.minX, bb.maxY, bb.maxZ).endVertex();
-        wr.pos(bb.minX, bb.maxY, bb.maxZ).endVertex();
-        wr.pos(bb.minX, bb.maxY, bb.minZ).endVertex();
-         
-        wr.pos(bb.minX, bb.minY, bb.minZ).endVertex();
-        wr.pos(bb.minX, bb.maxY, bb.minZ).endVertex();
-        wr.pos(bb.maxX, bb.minY, bb.minZ).endVertex();
-        wr.pos(bb.maxX, bb.maxY, bb.minZ).endVertex();
-        wr.pos(bb.maxX, bb.minY, bb.maxZ).endVertex();
-        wr.pos(bb.maxX, bb.maxY, bb.maxZ).endVertex();
-        wr.pos(bb.minX, bb.minY, bb.maxZ).endVertex();
-        wr.pos(bb.minX, bb.maxY, bb.maxZ).endVertex();
+        for (AxisAlignedBB bb : boxes) {
+            if (bb == null) continue;
+            wr.pos(bb.minX, bb.minY, bb.minZ).endVertex(); wr.pos(bb.maxX, bb.minY, bb.minZ).endVertex();
+            wr.pos(bb.maxX, bb.minY, bb.minZ).endVertex(); wr.pos(bb.maxX, bb.minY, bb.maxZ).endVertex();
+            wr.pos(bb.maxX, bb.minY, bb.maxZ).endVertex(); wr.pos(bb.minX, bb.minY, bb.maxZ).endVertex();
+            wr.pos(bb.minX, bb.minY, bb.maxZ).endVertex(); wr.pos(bb.minX, bb.minY, bb.minZ).endVertex();
+            wr.pos(bb.minX, bb.maxY, bb.minZ).endVertex(); wr.pos(bb.maxX, bb.maxY, bb.minZ).endVertex();
+            wr.pos(bb.maxX, bb.maxY, bb.minZ).endVertex(); wr.pos(bb.maxX, bb.maxY, bb.maxZ).endVertex();
+            wr.pos(bb.maxX, bb.maxY, bb.maxZ).endVertex(); wr.pos(bb.minX, bb.maxY, bb.maxZ).endVertex();
+            wr.pos(bb.minX, bb.maxY, bb.maxZ).endVertex(); wr.pos(bb.minX, bb.maxY, bb.minZ).endVertex();
+            wr.pos(bb.minX, bb.minY, bb.minZ).endVertex(); wr.pos(bb.minX, bb.maxY, bb.minZ).endVertex();
+            wr.pos(bb.maxX, bb.minY, bb.minZ).endVertex(); wr.pos(bb.maxX, bb.maxY, bb.minZ).endVertex();
+            wr.pos(bb.maxX, bb.minY, bb.maxZ).endVertex(); wr.pos(bb.maxX, bb.maxY, bb.maxZ).endVertex();
+            wr.pos(bb.minX, bb.minY, bb.maxZ).endVertex(); wr.pos(bb.minX, bb.maxY, bb.maxZ).endVertex();
+        }
 
         tessellator.draw();
 

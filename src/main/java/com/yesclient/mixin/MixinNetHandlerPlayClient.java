@@ -3,7 +3,7 @@ import java.util.List;
 import java.util.Iterator;
 
 import com.yesclient.YesClient;
-import com.yesclient.module.modules.movement.FlyModule;
+import com.yesclient.module.modules.exploit.BlatantFlyModule;
 import com.yesclient.module.modules.misc.NoDebuffModule;
 import com.yesclient.module.modules.visuals.HideEntitiesModule;
 import com.yesclient.utils.ItemFramePacketFilter;
@@ -99,8 +99,9 @@ public class MixinNetHandlerPlayClient {
 
     @Inject(method = "func_147270_a", at = @At("HEAD"), cancellable = true)
     public void handlePlayerAbilities(S39PacketPlayerAbilities packet, CallbackInfo ci) {
-        NoDebuffModule noDebuff = (NoDebuffModule) YesClient.getInstance().getModuleManager()
-                .getModule(NoDebuffModule.class);
+        if (YesClient.getInstance() == null || YesClient.getInstance().getModuleManager() == null) return;
+
+        NoDebuffModule noDebuff = YesClient.getInstance().getModuleManager().getModule(NoDebuffModule.class);
         if (noDebuff != null && noDebuff.isEnabled() && noDebuff.isSlownessRemovalEnabled()) {
              
             if (packet.getWalkSpeed() < 0.1f) {
@@ -108,34 +109,14 @@ public class MixinNetHandlerPlayClient {
             }
         }
 
-        FlyModule fly = (FlyModule) YesClient.getInstance().getModuleManager().getModule(FlyModule.class);
-        if (fly != null && fly.isEnabled()) {
-             
-            fly.updateServerFlyState(packet.isAllowFlying());
-
-             
-            com.yesclient.module.modules.client.ClickGUIModule clickGUI = YesClient.getInstance()
-                    .getModuleManager().getModule(com.yesclient.module.modules.client.ClickGUIModule.class);
-            boolean blatant = clickGUI != null && clickGUI.isBlatantModeEnabled();
-
-            if (blatant || (Minecraft.getMinecraft().thePlayer != null
-                    && Minecraft.getMinecraft().thePlayer.capabilities.isCreativeMode)) {
-                packet.setAllowFlying(true);
-                if (Minecraft.getMinecraft().thePlayer != null
-                        && Minecraft.getMinecraft().thePlayer.capabilities.isFlying) {
-                    packet.setFlying(true);
-                }
-            } else {
-                 
-                 
-                 
-                if (packet.isAllowFlying()) {
-                     
-                } else {
-                     
-                }
-            }
+        BlatantFlyModule fly = YesClient.getInstance().getModuleManager().getModule(BlatantFlyModule.class);
+        Minecraft minecraft = Minecraft.getMinecraft();
+        if (fly != null && fly.isEnabled() && minecraft.thePlayer != null
+                && !minecraft.thePlayer.capabilities.isCreativeMode) {
+            packet.setAllowFlying(true);
+            packet.setFlying(minecraft.thePlayer.capabilities.isFlying);
         }
+
     }
 
     @Inject(method = "func_147260_a", at = @At("HEAD"), cancellable = true)

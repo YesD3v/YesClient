@@ -76,6 +76,11 @@ public class ESPModule extends Module {
             if (!shouldRender(entity))
                 continue;
 
+            FreeCamModule freeCam = com.yesclient.YesClient.getInstance().getModuleManager()
+                    .getModule(FreeCamModule.class);
+            if (freeCam != null && freeCam.isEnabled() && freeCam.isAllowInteractions()
+                    && freeCam.isEntityWithinInteractionRadius(entity)) continue;
+
              
             if (entity instanceof EntityPlayer) {
                 EntityPlayer player = (EntityPlayer) entity;

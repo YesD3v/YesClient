@@ -73,7 +73,7 @@ public class GrieferDetectorModule extends Module {
      
      
     private final Map<UUID, Set<String>> alertedItems = new HashMap<>();
-    private final Map<UUID, Map<String, ItemAlertState>> itemAlertStates = new HashMap<>();
+    private final Map<UUID, Map<String, int[]>> itemAlertStates = new HashMap<>();
     private int nextAlertChatLineId = Integer.MIN_VALUE;
 
     private int ticks = 0;
@@ -258,30 +258,24 @@ public class GrieferDetectorModule extends Module {
     }
 
     private void updateAlert(UUID uuid, String name, String type, boolean severe, int amount) {
-        Map<String, ItemAlertState> states = itemAlertStates.computeIfAbsent(uuid, key -> new HashMap<String, ItemAlertState>());
-        ItemAlertState state = states.get(type);
+        Map<String, int[]> states = itemAlertStates.get(uuid);
+        if (states == null) {
+            states = new HashMap<>();
+            itemAlertStates.put(uuid, states);
+        }
+        int[] state = states.get(type);
         if (state == null) {
-            state = new ItemAlertState(nextAlertChatLineId++);
+            state = new int[] { nextAlertChatLineId++, 0, 0 };
             states.put(type, state);
         }
-        state.count += amount;
-        state.severe = severe;
+        state[1] += amount;
+        state[2] = severe ? 1 : 0;
 
-        String color = state.severe ? "\u00A7c" : "\u00A7f";
+        String color = state[2] != 0 ? "\u00A7c" : "\u00A7f";
         net.minecraft.util.ChatComponentText message = new net.minecraft.util.ChatComponentText(
                 "\u00A7c[Griefer Detector] \u00A7f" + name + " is flagging ["
-                        + color + type + "\u00A7f] \u00A77(x" + state.count + ")");
-        mc.ingameGUI.getChatGUI().printChatMessageWithOptionalDeletion(message, state.chatLineId);
-    }
-
-    private static class ItemAlertState {
-        private final int chatLineId;
-        private int count;
-        private boolean severe;
-
-        private ItemAlertState(int chatLineId) {
-            this.chatLineId = chatLineId;
-        }
+                        + color + type + "\u00A7f] \u00A77(x" + state[1] + ")");
+        mc.ingameGUI.getChatGUI().printChatMessageWithOptionalDeletion(message, state[0]);
     }
 
     public void onPacketReceive(net.minecraft.network.Packet<?> packet) {

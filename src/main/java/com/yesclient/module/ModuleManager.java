@@ -132,6 +132,7 @@ public class ModuleManager {
         modules.add(new ServerMatcherModule());
         modules.add(new BlinkModule());
         modules.add(new BypassBlacklistModule());
+        modules.add(new PPBuilderModule());
         modules.add(new ProjectileAimbotModule());
         modules.add(new BlatantFlyModule());
         modules.add(new SilentNukerModule());
@@ -335,7 +336,8 @@ public class ModuleManager {
                         }
                     }
 
-                    if (moduleJson.has("enabled") && moduleJson.get("enabled").getAsBoolean()) {
+                    if (moduleJson.has("enabled") && moduleJson.get("enabled").getAsBoolean()
+                            && !(module instanceof PPBuilderModule)) {
                         module.setEnabled(true);
                     }
                 }

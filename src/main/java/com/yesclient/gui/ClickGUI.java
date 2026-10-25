@@ -99,12 +99,80 @@ public class ClickGUI extends GuiScreen {
     private float sidebarIndicatorY = -1;   
     private float pageTransition;           
 
+    private final java.util.List<ResourceLocation> firstOpenTextures = new java.util.ArrayList<ResourceLocation>();
+    private int firstOpenTextureIndex;
+    private boolean firstOpenTexturesCollected;
+    private boolean firstOpenPrepared;
+
     private int panelX;
     private int panelY;
     private int panelW;
     private int panelH;
 
     public ClickGUI() {
+    }
+
+    public void prepareForFirstOpen(int textureBudget) {
+        if (firstOpenPrepared || textureBudget <= 0 || mc == null) return;
+        if (!firstOpenTexturesCollected) {
+            firstOpenTexturesCollected = true;
+            java.util.Set<ResourceLocation> unique = new java.util.LinkedHashSet<ResourceLocation>();
+            unique.add(BRAND_ICON);
+            if (YesClient.getInstance() != null && YesClient.getInstance().getModuleManager() != null) {
+                for (Module module : YesClient.getInstance().getModuleManager().getModules()) {
+                    if (module.getIcon() != null) unique.add(module.getIcon());
+                }
+            }
+            firstOpenTextures.addAll(unique);
+            prepareFontGlyphs();
+        }
+
+        int loaded = 0;
+        while (firstOpenTextureIndex < firstOpenTextures.size() && loaded < textureBudget) {
+            ResourceLocation location = firstOpenTextures.get(firstOpenTextureIndex++);
+            try {
+                mc.getTextureManager().bindTexture(location);
+            } catch (RuntimeException ignored) {
+            }
+            loaded++;
+        }
+        firstOpenPrepared = firstOpenTextureIndex >= firstOpenTextures.size();
+    }
+
+    private void prepareFontGlyphs() {
+        if (mc == null || mc.fontRendererObj == null) return;
+        java.util.Set<Character> glyphs = new java.util.LinkedHashSet<Character>();
+        addGlyphs(glyphs, "YesClient by yes.dev SETTINGS HUD CATEGORIES All modules Search modules BACK LOCKED ADD");
+        for (Category category : Category.values()) addGlyphs(glyphs, category.getDisplayName());
+        if (YesClient.getInstance() != null && YesClient.getInstance().getModuleManager() != null) {
+            for (Module module : YesClient.getInstance().getModuleManager().getModules()) {
+                addGlyphs(glyphs, module.getDisplayName());
+                addGlyphs(glyphs, module.getDescription());
+                addGlyphs(glyphs, module.getCategory().getDisplayName());
+                for (Setting<?> setting : module.getSettings()) {
+                    addGlyphs(glyphs, setting.getName());
+                    addGlyphs(glyphs, setting.getDescription());
+                }
+            }
+        }
+
+        StringBuilder text = new StringBuilder(glyphs.size());
+        for (Character glyph : glyphs) text.append(glyph.charValue());
+        if (text.length() == 0) return;
+
+        GL11.glPushAttrib(GL11.GL_SCISSOR_BIT);
+        GL11.glEnable(GL11.GL_SCISSOR_TEST);
+        GL11.glScissor(0, 0, 0, 0);
+        mc.fontRendererObj.drawString(text.toString(), -10000, -10000, 0xFFFFFFFF);
+        GL11.glPopAttrib();
+    }
+
+    private static void addGlyphs(java.util.Set<Character> glyphs, String text) {
+        if (text == null) return;
+        for (int i = 0; i < text.length(); i++) {
+            char glyph = text.charAt(i);
+            if (!Character.isISOControl(glyph)) glyphs.add(glyph);
+        }
     }
 
     @Override
